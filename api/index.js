@@ -9,9 +9,10 @@ const setSecurityHeaders = require('./middleware/security');
 const app = express();
 
 // Configure CORS with specific options
+// CORS configuration to allow all origins (for development/small scale)
 const corsOptions = {
-  origin: true,
-  credentials: true,
+  origin: '*', // Allow all origins
+  // Note: credentials:true is removed because it cannot be used with origin: '*'
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 };
