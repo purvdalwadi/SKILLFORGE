@@ -4,14 +4,14 @@
   "outputDirectory": "dist",
   "framework": "vite",
   "functions": {
-    "api/**/*": {
+    "api/vercel.js": {
       "runtime": "@vercel/node"
     }
   },
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "api/$1.js",
+      "dest": "api/vercel.js",
       "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
     },
     {

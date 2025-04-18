@@ -23,9 +23,9 @@ app.use(setSecurityHeaders);
 app.options('*', cors(corsOptions));
 
 // Routes
-app.use('/api/auth', require('./routes/auth'));
-app.use('/api/courses', require('./routes/courses'));
-app.use('/api/user', require('./routes/user'));
+app.use('/auth', require('./routes/auth'));
+app.use('/courses', require('./routes/courses'));
+app.use('/user', require('./routes/user'));
 
 // Error handling middleware
 app.use((err, req, res, next) => {

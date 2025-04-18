@@ -10,7 +10,7 @@ const api = axios.create({
 
 // Authentication & User Profile
 export const getUserProfile = async () => {
-  const response = await api.get('/api/user/profile');
+  const response = await api.get('/user/profile');
   return response.data;
 };
 
