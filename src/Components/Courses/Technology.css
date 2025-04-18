@@ -1,0 +1,102 @@
+/* Technology.css */
+
+.course-details-content {
+    max-width: 1000px;
+    margin: 2rem auto;
+    background-color: #fff;
+    padding: 2rem;
+    border-radius: 16px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  }
+  
+  .course-details-header {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    align-items: center;
+    margin-bottom: 2rem;
+  }
+  
+  .course-details-header img.webphoto {
+    flex: 1 1 300px;
+    max-width: 100%;
+    border-radius: 12px;
+    object-fit: cover;
+  }
+  
+  .course-details-info {
+    flex: 2;
+  }
+  
+  .course-details-info h2 {
+    font-size: 2rem;
+    color: #333;
+    margin-bottom: 0.5rem;
+  }
+  
+  .course-category {
+    color: #007bff;
+    font-weight: 500;
+    margin-bottom: 1rem;
+  }
+  
+  .course-meta span {
+    display: inline-block;
+    margin-right: 1rem;
+    font-size: 0.95rem;
+    color: #555;
+  }
+  
+  .course-details-body h3 {
+    font-size: 1.3rem;
+    margin-top: 1.5rem;
+    color: #222;
+  }
+  
+  .course-details-body p {
+    font-size: 1rem;
+    margin-top: 0.3rem;
+    color: #444;
+  }
+  
+  .course-details-body ul {
+    margin-top: 0.5rem;
+    padding-left: 1.5rem;
+    list-style: disc;
+    color: #444;
+  }
+  
+  .course-details-body ul li {
+    margin-bottom: 0.4rem;
+  }
+  
+  .primary-btn.enroll-btn {
+    display: inline-block;
+    margin-top: 2rem;
+    padding: 0.75rem 1.5rem;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 30px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .primary-btn.enroll-btn:hover {
+    background-color: #0056b3;
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .course-details-header {
+      flex-direction: column;
+      text-align: center;
+    }
+  
+    .course-details-info {
+      flex: unset;
+    }
+  }
+  
