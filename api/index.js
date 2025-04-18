@@ -9,7 +9,7 @@ const app = express();
 
 // Configure CORS with specific options
 const corsOptions = {
-  origin: ['https://skillforge-o03naxm3k-kaushals-projects-ea3a41f4.vercel.app', 'https://skillforge-teal.vercel.app', process.env.FRONTEND_URL].filter(Boolean),
+  origin: ['https://skillforge-o03naxm3k-kaushals-projects-ea3a41f4.vercel.app','https://skillforge-m6as59z8v-kaushals-projects-ea3a41f4.vercel.app', 'https://skillforge-teal.vercel.app', process.env.FRONTEND_URL].filter(Boolean),
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
