@@ -1,3 +1,4 @@
+
 const express = require('express');
 console.log("api/index.js is being executed!"); // Very early log
 const mongoose = require('mongoose');
@@ -44,7 +45,7 @@ app.use((req, res) => {
   res.status(404).json({ message: 'Route not found' });
 });
 
-// Connect to MongoDB and start server if not in Vercel
+// Connect to MongoDB and start server locally (not in Vercel serverless)
 if (process.env.NODE_ENV !== 'production') {
   mongoose.connect(process.env.MONGODB_URI)
     .then(() => {
@@ -60,5 +61,7 @@ if (process.env.NODE_ENV !== 'production') {
     });
 }
 
-// For Vercel serverless functions
-module.exports = app;
+// For Vercel serverless functions: export a handler function
+module.exports = (req, res) => {
+  app(req, res);
+};
