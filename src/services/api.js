@@ -15,7 +15,8 @@ export const getUserProfile = async () => {
 };
 
 export const loginUser = async (credentials) => {
-  const response = await api.post('/api/auth/login', credentials);
+  // {{Ensure leading '/api' is removed}}
+  const response = await api.post('/auth/login', credentials);
   return response.data;
 };
 
