@@ -4,6 +4,11 @@ const User = require('../models/User');
 
 const auth = async (req, res, next) => {
   try {
+    // Skip authentication for OPTIONS requests
+    if (req.method === 'OPTIONS') {
+      return next();
+    }
+
     // Get token and check if exists
     const token = req.header('Authorization')?.replace('Bearer ', '');
     if (!token) {
