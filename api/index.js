@@ -1,4 +1,5 @@
 const express = require('express');
+console.log("api/index.js is being executed!"); // Very early log
 const mongoose = require('mongoose');
 const cors = require('cors');
 const path = require('path');
