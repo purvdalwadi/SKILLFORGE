@@ -1,3 +1,4 @@
+require('dotenv').config({ path: '../.env' });
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
@@ -8,7 +9,7 @@ const app = express();
 
 // Configure CORS with specific options
 const corsOptions = {
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173', // Replace with your frontend URL
+  origin: process.env.VERCEL_URL || process.env.FRONTEND_URL || 'https://skillforge-teal.vercel.app/', // Replace with your frontend URL
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
@@ -42,6 +43,9 @@ app.use('/api/stream', (req, res, next) => {
   next();
 });
 
+// In your frontend API calls, update the base URL:
+const API_URL = '/api';  // Instead of http://localhost:5000/api
+
 const PORT = process.env.PORT || 5000;
 
 mongoose.connect(process.env.MONGODB_URI)
@@ -55,3 +59,6 @@ mongoose.connect(process.env.MONGODB_URI)
     console.error('MongoDB connection error:', err);
     process.exit(1);
   });
+
+// Export the express app for Vercel
+module.exports = app;

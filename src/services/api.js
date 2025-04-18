@@ -1,13 +1,11 @@
 import axios from 'axios';
+import { API_BASE_URL } from '../config/api';
 
-const API_URL = 'http://localhost:5000/api';
-
-// Create axios instance with default config
 const api = axios.create({
-  baseURL: API_URL,
+  baseURL: API_BASE_URL,
   headers: {
-    'Content-Type': 'application/json',
-  },
+    'Content-Type': 'application/json'
+  }
 });
 
 // Add request interceptor to include auth token
@@ -54,7 +52,7 @@ export const getEnrolledCourses = async () => {
 export const updateCourseProgress = async (courseId, progress) => {
   try {
     const response = await axios.post(
-      `${API_URL}/courses/${courseId}/progress`,
+      `${API_BASE_URL}/courses/${courseId}/progress`,
       { progress },
       {
         headers: {
@@ -128,7 +126,7 @@ export const deleteLesson = (courseId, lessonId) =>
 export const saveLessonProgress = async (courseId, lessonId, lastWatchedSecond) => {
   try {
     const response = await axios.post(
-      `${API_URL}/courses/${courseId}/lessons/${lessonId}/progress`,
+      `${API_BASE_URL}/courses/${courseId}/lessons/${lessonId}/progress`,
       { lastWatchedSecond },
       {
         headers: {
@@ -146,7 +144,7 @@ export const saveLessonProgress = async (courseId, lessonId, lastWatchedSecond) 
 export const getLessonProgress = async (courseId, lessonId) => {
   try {
     const response = await axios.get(
-      `${API_URL}/courses/${courseId}/lessons/${lessonId}/progress`,
+      `${API_BASE_URL}/courses/${courseId}/lessons/${lessonId}/progress`,
       {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
