@@ -18,9 +18,10 @@ const corsOptions = {
   allowedHeaders: ['Content-Type', 'Authorization']
 };
 
+app.use(setSecurityHeaders); // Move before cors
 app.use(cors(corsOptions));
 app.use(express.json());
-app.use(setSecurityHeaders);
+
 
 // Pre-flight requests
 app.options('*', cors(corsOptions));
