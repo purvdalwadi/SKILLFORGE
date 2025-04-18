@@ -1,10 +1,12 @@
 const express = require('express');
 const router = express.Router();
+console.log('auth.js is loaded');
 // const jwt = require('jsonwebtoken'); // Removed
 // const User = require('../models/User'); // Removed
 
 // Signup route
 router.post('/signup', async (req, res) => {
+  console.log('POST /auth/signup route hit');
   try {
     const { name, email, password, role } = req.body;
 
@@ -57,6 +59,7 @@ router.post('/signup', async (req, res) => {
 
 // Login route
 router.post('/login', async (req, res) => {
+  console.log('POST /auth/login route hit');
   try {
     // const { email, password } = req.body; // Removed
 
