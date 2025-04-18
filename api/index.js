@@ -10,9 +10,7 @@ const app = express();
 
 // Configure CORS with specific options
 const corsOptions = {
-  origin: function (origin, callback) {
-    callback(null, true)
-  },
+  origin: ['https://skillforge-7lsjjw6de-kaushals-projects-ea3a41f4.vercel.app'],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
