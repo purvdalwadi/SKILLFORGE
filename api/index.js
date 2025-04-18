@@ -9,7 +9,7 @@ const app = express();
 
 // Configure CORS with specific options
 const corsOptions = {
-  origin: process.env.VERCEL_URL || process.env.FRONTEND_URL || 'https://skillforge-teal.vercel.app/', // Replace with your frontend URL
+  origin: ['https://skillforge-o03naxm3k-kaushals-projects-ea3a41f4.vercel.app', 'https://skillforge-teal.vercel.app', process.env.FRONTEND_URL].filter(Boolean),
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
@@ -17,48 +17,45 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 app.use(express.json());
-
-// Add security headers middleware
 app.use(setSecurityHeaders);
 
-// Error handling middleware
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ 
-    message: 'Something went wrong!',
-    error: process.env.NODE_ENV === 'development' ? err.message : 'Internal server error'
-  });
-});
+// Pre-flight requests
+app.options('*', cors(corsOptions));
 
 // Routes
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/courses', require('./routes/courses'));
 app.use('/api/user', require('./routes/user'));
 
-// Handle video streaming errors
-app.use('/api/stream', (req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Methods', 'GET, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type');
-  next();
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error('Error:', err);
+  res.status(err.status || 500).json({ 
+    message: err.message || 'Something went wrong!',
+    error: process.env.NODE_ENV === 'development' ? err.stack : 'Internal server error'
+  });
 });
 
-// In your frontend API calls, update the base URL:
-const API_URL = '/api';  // Instead of http://localhost:5000/api
+// Handle 404s
+app.use((req, res) => {
+  res.status(404).json({ message: 'Route not found' });
+});
 
-const PORT = process.env.PORT || 5000;
-
-mongoose.connect(process.env.MONGODB_URI)
-  .then(() => {
-    console.log('Connected to MongoDB');
-    app.listen(PORT, () => {
-      console.log(`Server is running on port ${PORT}`);
+// Connect to MongoDB and start server if not in Vercel
+if (process.env.NODE_ENV !== 'production') {
+  mongoose.connect(process.env.MONGODB_URI)
+    .then(() => {
+      console.log('Connected to MongoDB');
+      const PORT = process.env.PORT || 5000;
+      app.listen(PORT, () => {
+        console.log(`Server is running on port ${PORT}`);
+      });
+    })
+    .catch(err => {
+      console.error('MongoDB connection error:', err);
+      process.exit(1);
     });
-  })
-  .catch(err => {
-    console.error('MongoDB connection error:', err);
-    process.exit(1);
-  });
+}
 
-// Export the express app for Vercel
+// For Vercel serverless functions
 module.exports = app;
