@@ -3,8 +3,9 @@ const setSecurityHeaders = (req, res, next) => {
     res.setHeader('Content-Security-Policy', 
         "frame-ancestors 'self' https://www.youtube.com https://youtube.com"
     );
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+    // Remove CORS headers, as they are handled in api/index.js
+    // res.setHeader('Access-Control-Allow-Origin', '*');
+    // res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
     next();
 };
 
