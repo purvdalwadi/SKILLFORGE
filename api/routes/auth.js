@@ -49,37 +49,30 @@ router.post('/signup', async (req, res) => {
 // Login route
 router.post('/login', async (req, res) => {
   try {
-    const { email, password } = req.body;
+    // const { email, password } = req.body; // Removed
 
     // Find user
-    const user = await User.findOne({ email });
-    if (!user) {
-      return res.status(400).json({ message: 'Invalid credentials' });
-    }
+    // const user = await User.findOne({ email }); // Removed
+    // if (!user) { // Removed
+    //   return res.status(400).json({ message: 'Invalid credentials' }); // Removed
+    // } // Removed
 
     // Check password
-    const isMatch = await user.comparePassword(password);
-    if (!isMatch) {
-      return res.status(400).json({ message: 'Invalid credentials' });
-    }
+    // const isMatch = await user.comparePassword(password); // Removed
+    // if (!isMatch) { // Removed
+    //   return res.status(400).json({ message: 'Invalid credentials' }); // Removed
+    // } // Removed
 
     // Generate JWT token
-    const token = jwt.sign(
-      { userId: user._id },
-      process.env.JWT_SECRET,
-      { expiresIn: '24h' }
-    );
-
-    res.json({
-      token,
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role
-      }
-    });
+    // const token = jwt.sign( // Removed
+    //   { userId: user._id }, // Removed
+    //   process.env.JWT_SECRET, // Removed
+    //   { expiresIn: '24h' } // Removed
+    // ); // Removed
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate'); // Add Cache-Control header
+    res.status(200).json({ message: 'Test' }); // Simplified response
   } catch (error) {
+    console.error("Login error:", error); // Log the entire error object
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 });
