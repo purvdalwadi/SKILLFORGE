@@ -3,30 +3,58 @@ const express = require('express');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
-const User = require('./utils/user'); // Use lowercase 'user' for consistency
+const User = require('./utils/user'); 
 const dbConnect = require('./utils/dbconnect');
+
+process.on('uncaughtException', (error) => {
+  console.error('CRITICAL ERROR:', error);
+});
 
 const app = express();
 
-app.use(cors({ origin: '*', methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], allowedHeaders: ['Content-Type', 'Authorization'] }));
+const corsOptions = {
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true);
+    const allowedPattern = /^https:\/\/skillforge-.*\.vercel\.app$/;
+    if (allowedPattern.test(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  methods: ['GET','POST','PUT','DELETE','OPTIONS'],
+  allowedHeaders: ['Content-Type','Authorization'],
+  credentials: true
+};
+
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
 app.use(express.json());
 
-// Explicitly handle preflight OPTIONS requests for all routes
-app.options('*', (req, res) => {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.status(204).end();
+app.use(async (req, res, next) => {
+  try {
+    await dbConnect();
+    next();
+  } catch (error) {
+    console.error('DB FAIL:', error);
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.status(500).json({ error: 'Database dead' });
+  }
 });
 
-// Connect to MongoDB before handling any requests
-app.use(async (req, res, next) => {
-  await dbConnect();
-  next();
-});
+// Routes with error wrapping
+const wrap = (fn) => async (req, res) => {
+  try {
+    await fn(req, res);
+  } catch (error) {
+    console.error('ROUTE CRASH:', error);
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.status(500).json({ error: 'Server exploded' });
+  }
+};
 
 // Signup route
-app.post('/api/auth/signup', async (req, res) => {
+app.post('/api/auth/signup', wrap(async (req, res) => {
   try {
     const { name, email, password, role } = req.body;
     const existingUser = await User.findOne({ email });
@@ -46,10 +74,10 @@ app.post('/api/auth/signup', async (req, res) => {
     console.error("Signup error:", error);
     res.status(500).json({ message: 'Server error', error: error.message });
   }
-});
+}));
 
 // Login route
-app.post('/api/auth/login', async (req, res) => {
+app.post('/api/auth/login', wrap(async (req, res) => {
   try {
     const { email, password } = req.body;
     const user = await User.findOne({ email });
@@ -70,7 +98,7 @@ app.post('/api/auth/login', async (req, res) => {
     console.error("Login error:", error);
     res.status(500).json({ message: 'Server error', error: error.message });
   }
-});
+}));
 
 // Add more routes here as needed...
 
