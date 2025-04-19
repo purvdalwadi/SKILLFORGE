@@ -21,70 +21,70 @@ export const loginUser = async (credentials) => {
 };
 
 export const registerUser = async (userData) => {
-  const response = await api.post('/api/auth/register', userData);
+  const response = await api.post('/auth/register', userData);
   return response.data;
 };
 
 // Course Management
 export const getAllCourses = async () => {
-  const response = await api.get('/api/courses');
+  const response = await api.get('/courses');
   return response.data;
 };
 
 export const getCourseById = async (courseId) => {
-  const response = await api.get(`/api/courses/${courseId}`);
+  const response = await api.get(`/courses/${courseId}`);
   return response.data;
 };
 
 export const getEnrolledCourses = async () => {
-  const response = await api.get('/api/courses/enrolled');
+  const response = await api.get('/courses/enrolled');
   return response.data;
 };
 
 export const enrollInCourse = async (courseId) => {
-  const response = await api.post(`/api/courses/${courseId}/enroll`);
+  const response = await api.post(`/courses/${courseId}/enroll`);
   return response.data;
 };
 
 export const updateCourseProgress = async (courseId, progress) => {
-  const response = await api.put(`/api/courses/${courseId}/progress`, { progress });
+  const response = await api.put(`/courses/${courseId}/progress`, { progress });
   return response.data;
 };
 
 // Lesson Progress
 export const saveLessonProgress = async (courseId, lessonId, progressData) => {
-  const response = await api.post(`/api/courses/${courseId}/lessons/${lessonId}/progress`, progressData);
+  const response = await api.post(`/courses/${courseId}/lessons/${lessonId}/progress`, progressData);
   return response.data;
 };
 
 export const getLessonProgress = async (courseId, lessonId) => {
-  const response = await api.get(`/api/courses/${courseId}/lessons/${lessonId}/progress`);
+  const response = await api.get(`/courses/${courseId}/lessons/${lessonId}/progress`);
   return response.data;
 };
 
 // Instructor Functions
 export const createCourse = async (courseData) => {
-  const response = await api.post('/api/courses', courseData);
+  const response = await api.post('/courses', courseData);
   return response.data;
 };
 
 export const updateCourse = async (courseId, courseData) => {
-  const response = await api.put(`/api/courses/${courseId}`, courseData);
+  const response = await api.put(`/courses/${courseId}`, courseData);
   return response.data;
 };
 
 export const deleteCourse = async (courseId) => {
-  const response = await api.delete(`/api/courses/${courseId}`);
+  const response = await api.delete(`/courses/${courseId}`);
   return response.data;
 };
 
 export const getInstructorCourses = async () => {
-  const response = await api.get('/api/courses/instructor');
+  const response = await api.get('/courses/instructor');
   return response.data;
 };
 
 export const getCourseStats = async (courseId) => {
-  const response = await api.get(`/api/courses/${courseId}/stats`);
+  const response = await api.get(`/courses/${courseId}/stats`);
   return response.data;
 };
 

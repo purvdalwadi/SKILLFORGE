@@ -56,7 +56,7 @@ const wrap = (fn) => async (req, res) => {
 };
 
 // Signup route
-app.post('/api/auth/signup', wrap(async (req, res) => {
+app.post('/auth/signup', wrap(async (req, res) => {
   try {
     const { name, email, password, role } = req.body;
     const existingUser = await User.findOne({ email });
@@ -79,7 +79,7 @@ app.post('/api/auth/signup', wrap(async (req, res) => {
 }));
 
 // Login route
-app.post('/api/auth/login', wrap(async (req, res) => {
+app.post('/auth/login', wrap(async (req, res) => {
   try {
     const { email, password } = req.body;
     const user = await User.findOne({ email });
