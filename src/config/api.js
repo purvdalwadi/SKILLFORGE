@@ -1,3 +1,4 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
+// Always use relative path to the serverless API
+const API_BASE_URL = '/api';
 
 export { API_BASE_URL };
