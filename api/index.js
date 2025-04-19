@@ -1,10 +1,13 @@
 // /api/index.js
-const express = require('express');
-const cors = require('cors');
-const jwt = require('jsonwebtoken');
-const bcrypt = require('bcryptjs');
-const User = require('./utils/user'); 
-const dbConnect = require('./utils/dbconnect');
+import dotenv from 'dotenv';
+dotenv.config();
+import express from 'express';
+import cors from 'cors';
+import jwt from 'jsonwebtoken';
+import bcrypt from 'bcryptjs';
+import User from './utils/user.js';
+import dbConnect from './utils/dbconnect.js';
+import serverless from 'serverless-http';
 
 process.on('uncaughtException', (error) => {
   console.error('CRITICAL ERROR:', error);
@@ -12,23 +15,9 @@ process.on('uncaughtException', (error) => {
 
 const app = express();
 
-const corsOptions = {
-  origin: (origin, callback) => {
-    if (!origin) return callback(null, true);
-    const allowedPattern = /^https:\/\/skillforge-.*\.vercel\.app$/;
-    if (allowedPattern.test(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  methods: ['GET','POST','PUT','DELETE','OPTIONS'],
-  allowedHeaders: ['Content-Type','Authorization'],
-  credentials: true
-};
-
-app.use(cors(corsOptions));
-app.options('*', cors(corsOptions));
+// CORS
+app.use(cors({ origin: true, credentials: true }));
+app.options('*', cors({ origin: true, credentials: true }));
 app.use(express.json());
 
 app.use(async (req, res, next) => {
@@ -107,7 +96,5 @@ app.use((req, res) => {
   res.status(404).json({ message: 'Route not found' });
 });
 
-// Export for Vercel serverless
-module.exports = (req, res) => {
-  app(req, res);
-};
+// Export as a Vercel serverless function
+export default serverless(app);

@@ -1,5 +1,5 @@
 // /api/utils/User.js
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 // Avoid model overwrite upon hot-reload in dev
 const UserSchema = new mongoose.Schema({
@@ -27,4 +27,4 @@ const UserSchema = new mongoose.Schema({
   }
 }, { timestamps: true });
 
-module.exports = mongoose.models.User || mongoose.model('User', UserSchema);
+export default mongoose.models.User || mongoose.model('User', UserSchema);
