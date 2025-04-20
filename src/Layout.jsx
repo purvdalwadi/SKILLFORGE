@@ -99,7 +99,7 @@ const Layout = () => {
                 </button>
               ) : (
                 <Link
-                  to={location.pathname === '/signup' ? '/signup' : '/login'}
+                  to={location.pathname === '/signup' ? '/login' : '/signup'}
                   className={`${
                     isAuthPage()
                       ? 'bg-[#0046DD] text-white'
