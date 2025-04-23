@@ -99,14 +99,14 @@ const Layout = () => {
                 </button>
               ) : (
                 <Link
-                  to={location.pathname === '/signup' ? '/login' : '/signup'}
+                  to={location.pathname === '/signup' ? '/signup' : '/login'}
                   className={`${
                     isAuthPage()
                       ? 'bg-[#0046DD] text-white'
                       : 'bg-[#0046DD] text-white hover:bg-blue-700'
                   } inline-flex items-center px-4 py-2 text-sm font-medium rounded-md ml-4`}
                 >
-                  {location.pathname === '/signup' ? 'Login' : 'Signup'}
+                  {location.pathname === '/signup' ? 'Sign Up' : 'Login'}
                 </Link>
               )}
             </div>
