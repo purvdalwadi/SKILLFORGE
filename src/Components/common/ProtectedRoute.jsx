@@ -8,6 +8,17 @@ const ProtectedRoute = ({ children, requiredRole }) => {
   const { user, loading, isInstructor } = useAuth();
   const location = useLocation();
 
+  // Check localStorage directly for role as a backup
+  const storedRole = localStorage.getItem('userRole');
+  const hasInstructorRole = isInstructor() || storedRole === 'instructor';
+
+  console.log('ProtectedRoute check:', { 
+    requiredRole, 
+    userRole: user?.role,
+    storedRole,
+    hasInstructorRole
+  });
+
   if (loading) {
     // Show loading state while checking authentication
     return (
@@ -23,8 +34,9 @@ const ProtectedRoute = ({ children, requiredRole }) => {
   }
 
   // If a specific role is required, check if user has that role
-  if (requiredRole === 'instructor' && !isInstructor()) {
+  if (requiredRole === 'instructor' && !hasInstructorRole) {
     // Redirect to dashboard if trying to access instructor-only pages
+    console.log('Redirecting from instructor page to dashboard - insufficient permissions');
     return <Navigate to="/dashboard" replace />;
   }
 

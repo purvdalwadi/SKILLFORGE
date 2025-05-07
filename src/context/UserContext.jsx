@@ -59,6 +59,25 @@ export function UserProvider({ children }) {
             setUser(null);
           } else {
             setUser(decoded);
+            // Immediately fetch enrolled courses when user is set
+            console.log('User authenticated, fetching enrolled courses...');
+            try {
+              setCoursesLoading(true);
+              const courses = await getEnrolledCourses();
+              
+              if (Array.isArray(courses)) {
+                const validCourses = courses
+                  .filter(course => course && course.courseId && course.courseId._id)
+                  .sort((a, b) => (b.progress || 0) - (a.progress || 0));
+                
+                setEnrolledCourses(validCourses);
+                console.log(`Loaded ${validCourses.length} enrolled courses on login`);
+              }
+            } catch (fetchError) {
+              console.error('Failed to fetch courses on login:', fetchError);
+            } finally {
+              setCoursesLoading(false);
+            }
           }
         }
       } catch (error) {
@@ -72,6 +91,35 @@ export function UserProvider({ children }) {
     };
 
     checkLoginStatus();
+  }, []);
+  
+  // Listen for auth:login events
+  useEffect(() => {
+    const handleAuthLogin = async (event) => {
+      const { user } = event.detail;
+      console.log('Auth login event received, fetching enrolled courses immediately');
+      
+      try {
+        setCoursesLoading(true);
+        const courses = await getEnrolledCourses();
+        
+        if (Array.isArray(courses)) {
+          const validCourses = courses
+            .filter(course => course && course.courseId && course.courseId._id)
+            .sort((a, b) => (b.progress || 0) - (a.progress || 0));
+          
+          setEnrolledCourses(validCourses);
+          console.log(`Loaded ${validCourses.length} enrolled courses from auth event`);
+        }
+      } catch (error) {
+        console.error('Failed to fetch courses after login event:', error);
+      } finally {
+        setCoursesLoading(false);
+      }
+    };
+    
+    window.addEventListener('auth:login', handleAuthLogin);
+    return () => window.removeEventListener('auth:login', handleAuthLogin);
   }, []);
 
   // Update course progress

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import studentIllustration from '../assets/student-illustration.svg';
+import '../Components/login/Login.css';
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -35,7 +36,7 @@ const Login = () => {
           <form onSubmit={handleSubmit} className="mt-8 space-y-6">
             <div className="space-y-4">
               <div>
-                <label htmlFor="username" className="block text-sm font-medium text-gray-700">
+                <label htmlFor="username" className="block text-sm font-medium text-gray-700 ">
                   Username
                 </label>
                 <div className="mt-1">

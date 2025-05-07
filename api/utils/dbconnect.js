@@ -1,20 +1,10 @@
 // /api/utils/dbConnect.js
 import mongoose from 'mongoose';
 
-const MONGODB_URI = process.env.MONGODB_URI;
+// Fallback to hardcoded URI if environment variable is not available
+const MONGODB_URI = process.env.MONGODB_URI || "mongodb://kaushal:kaushal9898@kaushal-cluster-shard-00-00.rhcix.mongodb.net:27017,kaushal-cluster-shard-00-01.rhcix.mongodb.net:27017,kaushal-cluster-shard-00-02.rhcix.mongodb.net:27017/?replicaSet=atlas-5f006n-shard-0&ssl=true&authSource=admin&retryWrites=true&w=majority&appName=kaushal-cluster";
 
-if (!MONGODB_URI) {
-  throw new Error('Please define the MONGODB_URI environment variable');
-}
-
-// Parse connection string to get hostname for logging
-let dbHost = 'unknown';
-try {
-  const uri = new URL(MONGODB_URI);
-  dbHost = uri.hostname || 'unknown';
-} catch (e) {
-  console.error('Invalid MongoDB URI format');
-}
+console.log('Using MongoDB URI:', MONGODB_URI ? 'URI is set' : 'URI is undefined');
 
 let cached = global.mongoose;
 
@@ -33,23 +23,22 @@ async function dbConnect() {
   }
   
   if (!cached.promise) {
-    console.log(`[MongoDB] Connecting to ${dbHost}...`);
+    console.log("[MongoDB] Connecting...");
     
     cached.promise = mongoose
       .connect(MONGODB_URI, { 
         serverSelectionTimeoutMS: 5000,
         connectTimeoutMS: 5000,
-        socketTimeoutMS: 10000,
-        heartbeatFrequencyMS: 30000,
-        retryWrites: true,
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
         w: 'majority'
       })
       .then(mongoose => {
-        console.log(`[MongoDB] Connected successfully to ${dbHost}`);
+        console.log("[MongoDB] Connected successfully");
         return mongoose;
       })
       .catch(err => {
-        console.error(`[MongoDB] Connection error: ${err.message}`);
+        console.error("[MongoDB] Connection error:", err);
         cached.promise.isRejected = true;
         throw err;
       });

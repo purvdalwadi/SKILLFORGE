@@ -11,15 +11,118 @@ body {
     color: #333;
 }
 
+html.dark-mode,
+body.dark-mode {
+  background-color: #1f2937; /* Match dashboard dark background */
+  color: #e5e7eb; /* Match dashboard text color */
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Toggle Switch */
+.toggle-switch {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  margin-right: 0.4rem;
+  user-select: none;
+  transition: color 0.3s;
+  height: 1.6rem;
+}
+.toggle-track {
+  width: 48px;
+  height: 24px;
+  background: #e0e0e0;
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  display: flex;
+  align-items: center;
+  position: relative;
+  transition: background 0.3s;
+}
+.toggle-thumb {
+  width: 20px;
+  height: 20px;
+  background: #fff;
+  border-radius: 50%;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  position: absolute;
+  left: 2px;
+  top: 2px;
+  transition: left 0.3s cubic-bezier(.4,2,.6,1), background 0.3s;
+}
+.toggle-switch.toggled .toggle-track {
+  background: #333;
+}
+.toggle-switch.toggled .toggle-thumb {
+  left: 26px;
+  background: #888;
+}
+.toggle-label {
+  font-size: 1rem;
+  font-weight: 500;
+  margin-left: 0.8rem;
+  color: #333;
+  transition: color 0.3s;
+}
+.toggle-switch.toggled .toggle-label {
+  color: #fff;
+}
+
+.nav-actions-row {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+}
+
 /* Navigation */
 .navbar {
     position: fixed;
     top: 0;
     left: 0;
-    right: 0;
-    background: white;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    width: 100%;
     z-index: 1000;
+    background: rgba(255,255,255,0.75);
+    box-shadow: 0 2px 16px 0 rgba(0,0,0,0.07);
+    padding: 0.05rem 0 0.05rem 0;
+    transition: background 0.4s, box-shadow 0.3s;
+    backdrop-filter: blur(14px) saturate(160%);
+    -webkit-backdrop-filter: blur(14px) saturate(160%);
+}
+
+.dark-navbar {
+    background: rgba(17,24,39,0.78);
+    color: #fff;
+    backdrop-filter: blur(14px) saturate(160%);
+    -webkit-backdrop-filter: blur(14px) saturate(160%);
+}
+
+.dark-navbar .logo span {
+    color: #fff !important;
+}
+
+.dark-navbar .logo-circle {
+    display: none !important;
+}
+
+.dark-navbar .nav-link {
+    color: #f3f3f3 !important;
+}
+
+.dark-navbar .nav-link.active {
+    color: #0040c1 !important;
+}
+
+.nav-link.active::after {
+    content: '';
+    display: block;
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -2px;
+    height: 2px;
+    background: #0040c1;
+    border-radius: 2px;
+    transition: left 0.3s cubic-bezier(.4,0,.2,1), right 0.3s cubic-bezier(.4,0,.2,1), background 0.2s, width 0.3s cubic-bezier(.4,0,.2,1);
 }
 
 .nav-content {
@@ -31,15 +134,53 @@ body {
     align-items: center;
 }
 
+.dark-toggle-btn {
+    background: none;
+    border: none;
+    color: #333;
+    font-size: 1.2rem;
+    margin-left: 1.5rem;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.dark-navbar .dark-toggle-btn {
+    color: #f3f3f3;
+}
+
+
 .logo {
     display: flex;
     align-items: center;
     gap: 0.5rem;
 }
 
+.logo-text {
+  font-size: 1.18rem;
+  font-weight: bold;
+  letter-spacing: 0.5px;
+  margin-left: 0.28rem;
+  color: #0040c1;
+  line-height: 1;
+}
+.dark-navbar .logo-text {
+  color: #fff;
+}
+
+.logo-group {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-left: -1.5rem;
+}
+
+.logo-circle, .logo-circle-dark {
+  width: 1.7rem;
+  height: 1.7rem;
+  font-size: 0.92rem;
+}
+
 .logo-circle {
-    width: 2rem;
-    height: 2rem;
     background: #0040c1;
     color: white;
     border-radius: 50%;
@@ -47,17 +188,33 @@ body {
     align-items: center;
     justify-content: center;
     font-weight: bold;
+    transition: display 0.2s;
+}
+
+.logo-circle-dark {
+    background: white;
+    color: #0040c1;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    transition: display 0.2s;
 }
 
 .nav-links {
     display: flex;
-    gap: 2rem;
+    gap: 1.05rem;
+    font-size: 0.99rem;
     align-items: center;
 }
 
 .nav-link {
+    color: #111 !important;
+    font-weight: 500;
     text-decoration: none;
-    color: #666;
+    transition: color 0.2s;
+    display: inline-block;
     position: relative;
 }
 
@@ -155,6 +312,75 @@ body {
     display: flex;
     gap: 2rem;
     align-items: center;
+}
+
+/* Logout Modal Styles for Header Component */
+.logout-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+.logout-modal-content {
+  background: #fff;
+  padding: 2rem;
+  border-radius: 8px;
+  max-width: 90%;
+  width: 320px;
+  text-align: center;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  transition: all 0.3s ease;
+}
+.logout-modal-content p {
+  margin-bottom: 1.5rem;
+  font-size: 1.1rem;
+  color: #333;
+}
+.logout-modal-ok-btn {
+  padding: 0.6rem 1.2rem;
+  background: #4F46E5;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+.logout-modal-ok-btn:hover {
+  background: #4338CA;
+}
+
+.spinner {
+  width: 3rem;
+  height: 3rem;
+  border: 4px solid #ddd;
+  border-top-color: #4F46E5;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.check-icon {
+  width: 3rem;
+  height: 3rem;
+  color: #4F46E5;
+  opacity: 0;
+  animation: fadeIn 0.3s forwards;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.5); }
+  to { opacity: 1; transform: scale(1); }
 }
 
 /* Responsive Design */

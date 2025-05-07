@@ -15,7 +15,6 @@ export const getUserProfile = async () => {
 };
 
 export const loginUser = async (credentials) => {
-  // {{Ensure leading '/api' is removed}}
   const response = await api.post('/auth/login', credentials);
   return response.data;
 };
@@ -28,12 +27,12 @@ export const registerUser = async (userData) => {
 // Course Management
 export const getAllCourses = async () => {
   const response = await api.get('/courses');
-  return response.data;
+  return response.data.courses;
 };
 
 export const getCourseById = async (courseId) => {
   const response = await api.get(`/courses/${courseId}`);
-  return response.data;
+  return response.data.course;
 };
 
 export const getEnrolledCourses = async () => {
@@ -85,6 +84,24 @@ export const getInstructorCourses = async () => {
 
 export const getCourseStats = async (courseId) => {
   const response = await api.get(`/courses/${courseId}/stats`);
+  return response.data;
+};
+
+// Site-wide stats summary
+export const getStatsSummary = async () => {
+  const response = await api.get('/stats/summary');
+  return response.data;
+};
+
+// Submit feedback from footer
+export const submitFeedback = async ({ email, message }) => {
+  const response = await api.post('/feedback', { email, message });
+  return response.data;
+};
+
+// YouTube metadata fetching
+export const fetchYouTubeMetadata = async (url) => {
+  const response = await api.get('/youtube-metadata', { params: { url } });
   return response.data;
 };
 

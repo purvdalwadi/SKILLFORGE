@@ -4,18 +4,6 @@ import './CreateCourse.css';
 import { getCourseById, updateCourse, fetchYouTubeMetadata } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 
-const courseCategories = [
-  'Web Development',
-  'Data Structures and Algorithms',
-  'Public Speaking',
-  'AI',
-  'Machine Learning',
-  'Cyber Security',
-  'Database Management',
-  'DevOps',
-  'Other'
-];
-
 export default function EditCourse() {
   const { courseId } = useParams();
   const navigate = useNavigate();
@@ -303,7 +291,7 @@ export default function EditCourse() {
               required
             >
               <option value="">Select a category</option>
-              {courseCategories.map((cat) => (
+              {window.allCourseCategories && window.allCourseCategories.map((cat) => (
                 <option key={cat} value={cat}>{cat}</option>
               ))}
             </select>

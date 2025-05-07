@@ -89,8 +89,18 @@ body {
   display: flex;
   gap: 2rem;
   align-items: center;
+  transition: color 0.2s;
 }
 
+.login-page-container {
+  padding-top: 0.3rem;
+}
+
+
+
+body.dark-mode .block, body.dark-mode .or , body.dark-mode .donthave {
+  color: white;
+}
 /* Responsive Design */
 @media (max-width: 768px) {
   .hero-content,

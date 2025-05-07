@@ -33,6 +33,44 @@
     background-color: #111827;
     color: #9ca3af;
   }
+
+body.dark-mode .footer .feedback-form textarea {
+    
+    color: black;
+    border: 1px solid #4b5563;
+}
+
+body.dark-mode .footer .feedback-form textarea::placeholder {
+    color: #9ca3af;
+    opacity: 1;
+    
+}
+
+body.dark-mode .footer {
+    background-color: #111827;
+    color: #e5e7eb;
+    border-top: 1px solid #4b5563; /* Add a subtle top border in dark mode */
+}
+
+body.dark-mode .footer-link:hover {
+    color: #fff;
+}
+
+body.dark-mode .social-link:hover {
+    color: #fff;
+}
+
+body.dark-mode .newsletter-input {
+    background-color: #374151;
+}
+
+body.dark-mode .legal-links a {
+    color: #9ca3af;
+}
+
+body.dark-mode .legal-links a:hover {
+    color: #fff;
+}
   
   .footer-container {
     max-width: 80rem;
@@ -114,6 +152,7 @@
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
+   
   }
   
   .contact-info li {
@@ -180,6 +219,65 @@
   
   .newsletter-button:hover {
     background-color: #1d4ed8;
+  }
+  
+  /* Feedback submit button */
+  .feedback button {
+    padding: 0.375rem 0.75rem;
+    font-size: 0.875rem;
+    background-color: #2563eb;
+    color: #fff;
+    border: none;
+    border-radius: 0.375rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+  .feedback button:hover {
+    background-color: #1d4ed8;
+  }
+  .feedback button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+  
+  /* Feedback textarea padding */
+  .feedback textarea {
+    padding: 1rem;
+    font-size: 0.875rem;
+    border: 1px solid #ccc;
+    border-radius: 0.375rem;
+  }
+  
+  /* Modal email input padding */
+  .feedback-email-input {
+    width: 100%;
+    padding: 1rem;
+    margin-top: 0.5rem;
+    border: 1px solid #ccc;
+    border-radius: 0.375rem;
+    font-size: 0.875rem;
+  }
+  
+  /* Modal action buttons container */
+  .logout-modal-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    margin-top: 1rem;
+  }
+  
+  /* Cancel button */
+  .logout-modal-cancel-btn {
+    padding: 0.5rem 1rem;
+    background-color: #6b7280;
+    color: #fff;
+    border: none;
+    border-radius: 0.375rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+  .logout-modal-cancel-btn:hover {
+    background-color: #4b5563;
   }
   
   .footer-bottom {

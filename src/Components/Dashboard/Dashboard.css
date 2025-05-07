@@ -14,9 +14,40 @@ body {
 /* Dashboard Section */
 .dashboard-container {
     max-width: 1200px;
-    margin: 2rem auto;
-    padding: 0 1rem;
+    margin: 2rem auto; /* Default margin */
+    padding: 4rem 1rem 0 1rem; /* Added top padding to avoid navbar overlap */
 }
+
+body.dark-mode .dashboard-container {
+    background: #1f2937; /* Restore dark background */
+    color: #e5e7eb;
+    padding:  4rem 1rem 0 1rem; /* Restore default padding */
+    /* max-width: none; /* Revert: Allow full width in dark mode */
+    /* margin: 0 auto; /* Remove dark-mode specific margin override */
+}
+
+/*body.dark-mode .dashboard-page {
+    /* Background and radius handled by inner .dashboard element */
+    /* overflow: hidden;  Remove clipping */
+/*}*/  
+
+body.dark-mode .dashboard h1 {
+    color: #e5e7eb !important;
+}
+
+body.dark-mode .courses-grid{
+    background-color: #1f2937;
+}
+
+body.dark-mode .progress-container {
+    background-color: #374151;
+}
+
+body.dark-mode .dashboard h1,
+body.dark-mode .section-header h2 {
+    color: #e5e7eb;
+}
+
 
 .dashboard-container h1 {
     font-size: 2.5rem;
@@ -35,11 +66,35 @@ body {
     background-color: white;
     border-radius: 12px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    padding: 2rem;
+    padding: 2rem 2rem 3rem 2rem;
+    margin-top: 4rem;
+}
+
+body.dark-mode .dashboard {
+    background-color: #1f2937; /* Match dashboard-page background */
+    color: #e5e7eb; /* Add text color */
+    /* border-radius: 12px; /* Add border-radius for dark mode */
+    /* overflow: hidden; /* Remove overflow hidden */
+    /* box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); */ /* Removed to test corner issue */
+}
+
+body.dark-mode main.flex-grow {
+    background-color: #1f2937; /* Match dashboard background */
 }
 
 /* Section headers */
 .section-header {
+    background-color: transparent; /* Ensure default is transparent */
+    border-bottom: 1px solid #f0f0f0;
+    padding-bottom: 0.5rem;
+    margin-bottom: 1.5rem;
+}
+
+body.dark-mode .section-header {
+    border-bottom-color: #4b5563; /* Darker border for dark mode */
+}
+
+.section-header h2 {
     margin-bottom: 1.5rem;
     border-bottom: 1px solid #f0f0f0;
     padding-bottom: 0.5rem;
@@ -67,6 +122,53 @@ body {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
     transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
 }
+
+body.dark-mode .stat-card {
+    background-color: #374151; /* Slightly lighter card background */
+    color: #e5e7eb;
+    border: 1px solid #4b5563;
+    border-radius: 12px; /* Increased border-radius */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2), 0 1px 3px rgba(0, 0, 0, 0.1); /* Modern shadow */
+}
+
+body.dark-mode .stat-value {
+    color: #93c5fd; /* Brighter blue for value */
+}
+
+body.dark-mode .stat-label {
+    color: #9ca3af; /* Slightly adjusted label color */
+}
+
+body.dark-mode .progress-container,
+body.dark-mode .progress-bg {
+    background-color: #4b5563; /* Darker progress background */
+}
+
+body.dark-mode .progress-bar {
+    background-color: #60a5fa; /* Lighter blue progress bar */
+}
+
+body.dark-mode .progress-text {
+    color: #93c5fd;
+}
+
+body.dark-mode .continue-btn,
+body.dark-mode .browse-courses-btn {
+    background-color: #3b82f6; /* Adjusted button blue */
+    color: #fff;
+}
+
+body.dark-mode .continue-btn:hover,
+body.dark-mode .browse-courses-btn:hover {
+    background-color: #2563eb; /* Darker hover blue */
+}
+
+body.dark-mode .empty-courses {
+    background-color: #374151;
+    color: #9ca3af;
+    border: 1px solid #4b5563;
+}
+
 
 .stat-card:hover {
     transform: translateY(-2px);
@@ -106,6 +208,8 @@ body {
     flex-direction: column;
 }
 
+\n
+
 .course-card:hover {
     transform: translateY(-4px);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -113,9 +217,16 @@ body {
 
 .course-image {
     position: relative;
-    padding-top: 56.25%; /* 16:9 aspect ratio */
+    height: 180px; /* Fixed height to match Courses component */
     background-color: #f8f9fa;
     overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+body.dark-mode .course-image {
+    background-color: #4b5563; /* Dark background for image area */
 }
 
 .course-thumbnail {
@@ -125,6 +236,7 @@ body {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    display: block;
     transition: transform 0.3s ease-in-out;
 }
 
@@ -143,12 +255,43 @@ body {
     font-weight: 700;
 }
 
+body.dark-mode .course-thumbnail-placeholder {
+    background-color: #374151; /* Darker placeholder background */
+    color: #93c5fd; /* Lighter placeholder text */
+}
+
 .course-content {
     padding: 1.5rem;
     flex-grow: 1;
     display: flex;
     flex-direction: column;
 }
+
+/* Dark mode course card adjustments */
+body.dark-mode .course-card {
+    background-color: #374151;
+    border: 1px solid #4b5563;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+body.dark-mode .course-content h3 {
+    color: #e5e7eb;
+}
+
+body.dark-mode .course-category {
+    color: #90cdf4;
+    background-color: #2c5282;
+}
+
+body.dark-mode .course-meta {
+    color: #9ca3af;
+}
+
+body.dark-mode .course-content {
+    background-color: transparent; /* Ensure content area inherits card background */
+}
+
+\n
 
 .course-content h3 {
     margin-top: 0;

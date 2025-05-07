@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import studentIllustration from '../assets/student-illustration.svg';
+import './Sign_in.css';
 
 const Signup = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -25,12 +26,12 @@ const Signup = () => {
   };
 
   return (
-    <div className="min-h-screen flex">
+    <div className=" min-h-screen flex">
       {/* Left side - Signup Form */}
       <div className="flex-1 flex items-center justify-center p-8">
         <div className="w-full max-w-md space-y-8">
           <div className="space-y-3">
-            <h1 className="text-4xl font-bold text-gray-900">Sign Up</h1>
+            <h1 className="text-4xl font-bold">Sign Up</h1>
             <p className="text-gray-500">Create your student account</p>
           </div>
 
@@ -158,4 +159,4 @@ const Signup = () => {
   );
 };
 
-export default Signup; 
+export default Signup;

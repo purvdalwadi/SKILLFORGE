@@ -1,11 +1,29 @@
 // /api/index.js
 import dotenv from 'dotenv';
-dotenv.config();
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+// Get directory path in ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Load environment variables first
+dotenv.config({ path: path.resolve(__dirname, '../.env') });
+console.log('MONGODB_URI in index.js:', process.env.MONGODB_URI || 'Undefined');
+
+// Then import other modules
 import express from 'express';
 import cors from 'cors';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import User from './utils/user.js';
+import Course from './utils/course.js';
+import Feedback from './utils/feedback.js'; // Import Feedback model
+import passport from 'passport';
+import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
+import mongoose from 'mongoose'; // Added for ObjectId
+
+// Import database connection last
 import dbConnect from './utils/dbconnect.js';
 
 process.on('uncaughtException', (error) => {
@@ -13,6 +31,7 @@ process.on('uncaughtException', (error) => {
 });
 
 const app = express();
+app.use(passport.initialize());
 
 // Vercel CORS middleware: always set CORS headers and handle OPTIONS preflight
 app.use((req, res, next) => {
@@ -236,114 +255,518 @@ app.get('/api/user/profile', wrap(async (req, res) => {
 }));
 
 // Courses routes
-app.get('/api/courses', wrap(async (req, res) => {
+app.get(['/api/courses', '/courses'], wrap(async (req, res) => {
+  console.log('[Courses] Fetching all courses from DB');
   try {
-    console.log('[Courses] Fetching all courses');
-    // For now, return a mock response
-    // In a real app, you would fetch from your database
-    res.status(200).json({
-      courses: [
-        {
-          id: '1',
-          title: 'Introduction to Web Development',
-          description: 'Learn the basics of HTML, CSS, and JavaScript',
-          instructor: 'John Doe',
-          thumbnail: 'https://via.placeholder.com/300x200',
-          duration: '8 weeks',
-          level: 'Beginner'
-        },
-        {
-          id: '2',
-          title: 'Advanced React',
-          description: 'Master React hooks, context, and advanced patterns',
-          instructor: 'Jane Smith',
-          thumbnail: 'https://via.placeholder.com/300x200',
-          duration: '10 weeks',
-          level: 'Intermediate'
-        },
-        {
-          id: '3',
-          title: 'Full Stack Development with MERN',
-          description: 'Build complete applications with MongoDB, Express, React, and Node.js',
-          instructor: 'Alex Johnson',
-          thumbnail: 'https://via.placeholder.com/300x200',
-          duration: '12 weeks',
-          level: 'Advanced'
-        }
-      ]
-    });
+    // Ensure we're connected to the database
+    await dbConnect();
+    console.log('[Courses] DB connected, querying courses');
+    const coursesList = await Course.find({}).populate('instructor', 'name email role');
+    console.log(`[Courses] Found ${coursesList.length} courses`);
+    res.status(200).json({ courses: coursesList });
   } catch (error) {
-    console.error('[Courses] Error:', error);
-    res.status(500).json({ message: 'Server error', error: error.message });
+    console.error('[Courses] Error fetching from DB:', error.message);
+    res.status(500).json({ message: 'Failed to fetch courses from database', error: error.message });
+  }
+}));
+
+// Create a new course (production-ready)
+app.post(['/api/courses', '/courses'], wrap(async (req, res) => {
+  try {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) return res.status(401).json({ message: 'No token provided' });
+    let decoded;
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET);
+    } catch (jwtError) {
+      return res.status(401).json({ message: 'Invalid or expired token' });
+    }
+    // Validate required fields
+    const { title, description, category, level, thumbnail, lessons } = req.body;
+    if (!title || !description || !category || !level) {
+      return res.status(400).json({ message: 'Missing required course fields' });
+    }
+    // Create course
+    const course = new Course({
+      title,
+      description,
+      category,
+      level,
+      thumbnail,
+      lessons: Array.isArray(lessons) ? lessons : [],
+      instructor: decoded.userId
+    });
+    await course.save();
+    await course.populate('instructor', 'name email role');
+    res.status(201).json({ message: 'Course created successfully', course });
+  } catch (error) {
+    console.error('[CourseCreate] Error creating course:', error.message);
+    res.status(500).json({ message: 'Failed to create course', error: error.message });
+  }
+}));
+
+// Fetch enrolled courses (must be before /:id route)
+app.get(['/api/courses/enrolled', '/courses/enrolled'], wrap(async (req, res) => {
+  console.log('[Enrolled] Fetching enrolled courses');
+  const token = req.headers.authorization?.split(' ')[1];
+  if (!token) return res.status(401).json({ message: 'No token provided' });
+  
+  try {
+    // Verify token
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    console.log('[Enrolled] Token verified, userId:', decoded.userId);
+    
+    // Ensure DB connection
+    await dbConnect();
+    console.log('[Enrolled] DB connected, finding user');
+    
+    // Retrieve user's enrolled courses with full course details
+    const userDoc = await User.findById(decoded.userId)
+      .select('enrolledCourses')
+      .populate({
+        path: 'enrolledCourses.courseId',
+        model: 'Course',
+        populate: { path: 'instructor', select: 'name email role' }
+      });
+      
+    if (!userDoc) {
+      console.log('[Enrolled] User not found');
+      return res.status(404).json({ message: 'User not found' });
+    }
+    
+    console.log(`[Enrolled] Found ${userDoc.enrolledCourses?.length || 0} enrolled courses`);
+    res.status(200).json(userDoc.enrolledCourses || []);
+  } catch (error) {
+    if (error.name === 'JsonWebTokenError' || error.name === 'TokenExpiredError') {
+      console.error('[Enrolled] Token verification failed:', error.message);
+      return res.status(401).json({ message: 'Invalid or expired token' });
+    }
+    console.error('[Enrolled] Error fetching enrolled courses:', error.message);
+    res.status(500).json({ message: 'Failed to fetch enrolled courses', error: error.message });
+  }
+}));
+
+// Fetch instructor courses with enrollment data
+app.get(['/api/courses/instructor', '/courses/instructor'], wrap(async (req, res) => {
+  console.log('[Instructor] Fetching instructor courses with enrollment data');
+  const token = req.headers.authorization?.split(' ')[1];
+  if (!token) return res.status(401).json({ message: 'No token provided' });
+  
+  try {
+    // Verify token
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    console.log('[Instructor] Token verified, userId:', decoded.userId);
+    
+    // Ensure DB connection
+    await dbConnect();
+    console.log('[Instructor] DB connected, finding courses');
+    
+    // Retrieve courses taught by this instructor
+    const courses = await Course.find({ instructor: decoded.userId })
+      .populate('instructor', 'name email role');
+      
+    // Get enrollment data for each course
+    const courseIds = courses.map(course => course._id);
+    console.log(`[Instructor] Found ${courses.length} instructor courses, getting enrollment data`);
+    
+    // Find all users who have enrolled in any of these courses
+    const enrollmentData = await User.aggregate([
+      { $match: { 'enrolledCourses.courseId': { $in: courseIds } } },
+      { $unwind: '$enrolledCourses' },
+      { $match: { 'enrolledCourses.courseId': { $in: courseIds } } },
+      { $group: {
+        _id: '$enrolledCourses.courseId',
+        enrolledCount: { $sum: 1 },
+        students: { $push: { id: '$_id', name: '$name', email: '$email' } }
+      }}
+    ]);
+    
+    console.log(`[Instructor] Found enrollment data:`, enrollmentData);
+    
+    // Attach enrollment data to each course
+    const coursesWithEnrollment = courses.map(course => {
+      const courseData = course.toObject();
+      const enrollment = enrollmentData.find(e => e._id.toString() === course._id.toString());
+      
+      courseData.enrollmentStats = {
+        count: enrollment ? enrollment.enrolledCount : 0,
+        students: enrollment ? enrollment.students : []
+      };
+      
+      return courseData;
+    });
+    
+    console.log(`[Instructor] Returning ${coursesWithEnrollment.length} courses with enrollment data`);
+    res.status(200).json(coursesWithEnrollment);
+  } catch (error) {
+    if (error.name === 'JsonWebTokenError' || error.name === 'TokenExpiredError') {
+      console.error('[Instructor] Token verification failed:', error.message);
+      return res.status(401).json({ message: 'Invalid or expired token' });
+    }
+    console.error('[Instructor] Error fetching instructor courses:', error.message);
+    res.status(500).json({ message: 'Failed to fetch instructor courses', error: error.message });
   }
 }));
 
 // Course by ID route
-app.get('/api/courses/:id', wrap(async (req, res) => {
+app.get(['/api/courses/:id', '/courses/:id'], wrap(async (req, res) => {
+  const { id } = req.params;
+  console.log('[Courses] Fetching course ID:', id);
   try {
-    const courseId = req.params.id;
-    console.log(`[Courses] Fetching course with ID: ${courseId}`);
-    
-    // Mock course data
-    const courses = {
-      '1': {
-        id: '1',
-        title: 'Introduction to Web Development',
-        description: 'Learn the basics of HTML, CSS, and JavaScript',
-        instructor: 'John Doe',
-        thumbnail: 'https://via.placeholder.com/300x200',
-        duration: '8 weeks',
-        level: 'Beginner',
-        lessons: [
-          { id: '1-1', title: 'HTML Basics', completed: false },
-          { id: '1-2', title: 'CSS Styling', completed: false },
-          { id: '1-3', title: 'JavaScript Fundamentals', completed: false }
-        ]
-      },
-      '2': {
-        id: '2',
-        title: 'Advanced React',
-        description: 'Master React hooks, context, and advanced patterns',
-        instructor: 'Jane Smith',
-        thumbnail: 'https://via.placeholder.com/300x200',
-        duration: '10 weeks',
-        level: 'Intermediate',
-        lessons: [
-          { id: '2-1', title: 'React Hooks', completed: false },
-          { id: '2-2', title: 'Context API', completed: false },
-          { id: '2-3', title: 'Performance Optimization', completed: false }
-        ]
-      },
-      '3': {
-        id: '3',
-        title: 'Full Stack Development with MERN',
-        description: 'Build complete applications with MongoDB, Express, React, and Node.js',
-        instructor: 'Alex Johnson',
-        thumbnail: 'https://via.placeholder.com/300x200',
-        duration: '12 weeks',
-        level: 'Advanced',
-        lessons: [
-          { id: '3-1', title: 'MongoDB Basics', completed: false },
-          { id: '3-2', title: 'Express API Development', completed: false },
-          { id: '3-3', title: 'Full Stack Integration', completed: false }
-        ]
-      }
-    };
-    
-    const course = courses[courseId];
-    
-    if (!course) {
-      return res.status(404).json({ message: 'Course not found' });
-    }
-    
+    // Ensure we're connected to the database
+    await dbConnect();
+    console.log('[Courses] DB connected, querying course:', id);
+    const course = await Course.findById(id).populate('instructor', 'name email role');
+    if (!course) return res.status(404).json({ message: 'Course not found' });
+    console.log('[Courses] Found course:', course.title);
     res.status(200).json({ course });
   } catch (error) {
-    console.error(`[Courses] Error fetching course:`, error);
-    res.status(500).json({ message: 'Server error', error: error.message });
+    console.error('[Courses] Error fetching course:', error.message);
+    res.status(500).json({ message: 'Failed to fetch course from database', error: error.message });
   }
 }));
 
-// Add more routes here as needed...
+// Course enrollment endpoint
+app.post(['/api/courses/:id/enroll', '/courses/:id/enroll'], wrap(async (req, res) => {
+  const { id } = req.params;
+  console.log(`[Enroll] Processing enrollment for course: ${id}`);
+  const token = req.headers.authorization?.split(' ')[1];
+  
+  if (!token) {
+    console.log('[Enroll] No token provided');
+    return res.status(401).json({ message: 'No token provided' });
+  }
+  
+  try {
+    // Verify token
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    console.log('[Enroll] Token verified, userId:', decoded.userId);
+    
+    // Ensure DB connection
+    await dbConnect();
+    console.log('[Enroll] DB connected, finding course and user');
+    
+    // Find the course
+    const course = await Course.findById(id);
+    if (!course) {
+      console.log('[Enroll] Course not found');
+      return res.status(404).json({ message: 'Course not found' });
+    }
+    
+    // Find the user
+    const user = await User.findById(decoded.userId);
+    if (!user) {
+      console.log('[Enroll] User not found');
+      return res.status(404).json({ message: 'User not found' });
+    }
+    
+    // Check if already enrolled
+    const alreadyEnrolled = user.enrolledCourses.some(
+      enrollment => enrollment.courseId.toString() === id
+    );
+    
+    if (alreadyEnrolled) {
+      console.log('[Enroll] User already enrolled in this course');
+      return res.status(400).json({ message: 'Already enrolled in this course' });
+    }
+    
+    // Add course to user's enrolledCourses
+    user.enrolledCourses.push({
+      courseId: course._id,
+      progress: 0,
+      completed: false
+    });
+    
+    // Also add user to course's enrolledStudents
+    if (!course.enrolledStudents.includes(user._id)) {
+      course.enrolledStudents.push(user._id);
+      await course.save();
+    }
+    
+    await user.save();
+    console.log('[Enroll] Enrollment successful');
+    
+    res.status(200).json({ 
+      message: 'Successfully enrolled in course',
+      courseId: course._id,
+      title: course.title
+    });
+  } catch (error) {
+    if (error.name === 'JsonWebTokenError' || error.name === 'TokenExpiredError') {
+      console.error('[Enroll] Token verification failed:', error.message);
+      return res.status(401).json({ message: 'Invalid or expired token' });
+    }
+    console.error('[Enroll] Error processing enrollment:', error.message);
+    res.status(500).json({ message: 'Failed to enroll in course', error: error.message });
+  }
+}));
+
+// Course update endpoint for instructors
+app.put(['/api/courses/:id', '/courses/:id'], wrap(async (req, res) => {
+  const { id } = req.params;
+  console.log(`[CourseUpdate] Updating course: ${id}`);
+  
+  const token = req.headers.authorization?.split(' ')[1];
+  if (!token) {
+    console.log('[CourseUpdate] No token provided');
+    return res.status(401).json({ message: 'No token provided' });
+  }
+  
+  try {
+    // Verify token
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    console.log('[CourseUpdate] Token verified, userId:', decoded.userId);
+    
+    // Ensure DB connection
+    await dbConnect();
+    console.log('[CourseUpdate] DB connected, finding course');
+    
+    // Find the course
+    const course = await Course.findById(id);
+    if (!course) {
+      console.log('[CourseUpdate] Course not found');
+      return res.status(404).json({ message: 'Course not found' });
+    }
+    
+    // Verify the user is the instructor of this course
+    if (course.instructor.toString() !== decoded.userId) {
+      console.log('[CourseUpdate] User is not the instructor of this course');
+      return res.status(403).json({ message: 'Not authorized to update this course' });
+    }
+    
+    // Update course fields
+    const updatableFields = [
+      'title', 'description', 'category', 'level',
+      'duration', 'price', 'thumbnail', 'lessons'
+    ];
+    
+    updatableFields.forEach(field => {
+      if (req.body[field] !== undefined) {
+        course[field] = req.body[field];
+      }
+    });
+    
+    await course.save();
+    console.log('[CourseUpdate] Course updated successfully');
+    
+    res.status(200).json({ 
+      message: 'Course updated successfully',
+      course
+    });
+  } catch (error) {
+    if (error.name === 'JsonWebTokenError' || error.name === 'TokenExpiredError') {
+      console.error('[CourseUpdate] Token verification failed:', error.message);
+      return res.status(401).json({ message: 'Invalid or expired token' });
+    }
+    console.error('[CourseUpdate] Error updating course:', error.message);
+    res.status(500).json({ message: 'Failed to update course', error: error.message });
+  }
+}));
+
+// Course progress update endpoint (Overall course progress)
+app.put(['/api/courses/:id/progress', '/courses/:id/progress'], verifyToken, wrap(async (req, res) => {
+  const { id } = req.params;
+  const { progress } = req.body;
+  console.log(`[Progress] Updating overall progress for course: ${id} to ${progress}%`);
+  // ... existing implementation for overall progress ...
+
+  if (progress === undefined || progress < 0 || progress > 100) {
+    return res.status(400).json({ message: 'Invalid overall progress value (0-100)' });
+  }
+  
+  const token = req.headers.authorization?.split(' ')[1];
+  if (!token) return res.status(401).json({ message: 'No token provided' });
+  
+  try {
+    // Verify token
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    console.log('[Progress] Token verified, userId:', decoded.userId);
+    
+    // Ensure DB connection
+    await dbConnect();
+    console.log('[Progress] DB connected, finding user');
+    
+    // Find the user and update the specific course progress
+    const user = await User.findById(decoded.userId);
+    if (!user) {
+      console.log('[Progress] User not found');
+      return res.status(404).json({ message: 'User not found' });
+    }
+    
+    // Find the enrollment
+    const enrollmentIndex = user.enrolledCourses.findIndex(
+      enrollment => enrollment.courseId.toString() === id
+    );
+    
+    if (enrollmentIndex === -1) {
+      console.log('[Progress] User not enrolled in this course');
+      return res.status(404).json({ message: 'Not enrolled in this course' });
+    }
+    
+    // Update progress
+    user.enrolledCourses[enrollmentIndex].progress = progress;
+    user.enrolledCourses[enrollmentIndex].completed = progress === 100;
+    
+    await user.save();
+    console.log('[Progress] Progress updated successfully');
+    
+    res.status(200).json({ 
+      message: 'Progress updated successfully',
+      progress,
+      completed: progress === 100
+    });
+  } catch (error) {
+    if (error.name === 'JsonWebTokenError' || error.name === 'TokenExpiredError') {
+      console.error('[Progress] Token verification failed:', error.message);
+      return res.status(401).json({ message: 'Invalid or expired token' });
+    }
+    console.error('[Progress] Error updating progress:', error.message);
+    res.status(500).json({ message: 'Failed to update progress', error: error.message });
+  }
+}));
+
+// YouTube metadata fetching endpoint
+app.get(['/api/youtube-metadata', '/youtube-metadata'], wrap(async (req, res) => {
+  const { url } = req.query;
+  console.log(`[YouTube] Fetching metadata for URL: ${url}`);
+  
+  if (!url) {
+    return res.status(400).json({ message: 'URL parameter is required' });
+  }
+  
+  try {
+    // Extract video ID from YouTube URL
+    let videoId;
+    const urlObj = new URL(url);
+    
+    if (urlObj.hostname.includes('youtube.com')) {
+      videoId = urlObj.searchParams.get('v');
+    } else if (urlObj.hostname.includes('youtu.be')) {
+      videoId = urlObj.pathname.substring(1);
+    }
+    
+    if (!videoId) {
+      return res.status(400).json({ message: 'Invalid YouTube URL' });
+    }
+    
+    console.log(`[YouTube] Extracted video ID: ${videoId}`);
+    
+    // Use YouTube Data API to get accurate video metadata
+    const YOUTUBE_API_KEY = 'AIzaSyAqBfyR0oQChZQl0xmZCkvv4f-Ij9Z3KZ4';
+    const youtubeApiUrl = `https://www.googleapis.com/youtube/v3/videos?id=${videoId}&part=snippet,contentDetails&key=${YOUTUBE_API_KEY}`;
+    
+    console.log(`[YouTube] Fetching data from YouTube Data API for video ID: ${videoId}`);
+    
+    const youtubeResponse = await fetch(youtubeApiUrl);
+    const youtubeData = await youtubeResponse.json();
+    
+    if (!youtubeData.items || youtubeData.items.length === 0) {
+      console.log('[YouTube] No items found in YouTube API response');
+      return res.status(404).json({ message: 'Video not found' });
+    }
+    
+    const videoDetails = youtubeData.items[0];
+    const snippet = videoDetails.snippet;
+    const contentDetails = videoDetails.contentDetails;
+    
+    // Parse ISO 8601 duration format (PT1H2M3S)
+    function parseIsoDuration(isoDuration) {
+      const match = isoDuration.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
+      const hours = parseInt(match[1] || 0);
+      const minutes = parseInt(match[2] || 0);
+      const seconds = parseInt(match[3] || 0);
+      return hours * 3600 + minutes * 60 + seconds;
+    }
+    
+    const durationInSeconds = parseIsoDuration(contentDetails.duration);
+    console.log(`[YouTube] Parsed duration: ${durationInSeconds} seconds from ${contentDetails.duration}`);
+    
+    // Get highest resolution thumbnail available
+    const thumbnails = snippet.thumbnails;
+    const thumbnailUrl = 
+      (thumbnails.maxres && thumbnails.maxres.url) ||
+      (thumbnails.high && thumbnails.high.url) ||
+      (thumbnails.medium && thumbnails.medium.url) ||
+      (thumbnails.default && thumbnails.default.url);
+    
+    // Extract and format relevant data
+    const metadata = {
+      title: snippet.title,
+      description: snippet.description,
+      duration: durationInSeconds,
+      thumbnail: thumbnailUrl,
+      author: snippet.channelTitle,
+      videoId,
+      url: url // Keep the URL so it doesn't disappear
+    };
+    
+    console.log(`[YouTube] Successfully fetched metadata for video: ${snippet.title}`);
+    
+    res.status(200).json(metadata);
+  } catch (error) {
+    console.error('[YouTube] Error fetching metadata:', error.message);
+    res.status(500).json({ message: 'Failed to fetch video metadata', error: error.message });
+  }
+}));
+
+// Stats summary endpoint
+app.get('/api/stats/summary', wrap(async (req, res) => {
+  console.log('[Stats] Fetching summary counts');
+  const totalStudents = await User.countDocuments({ role: 'student' });
+  const totalInstructors = await User.countDocuments({ role: 'instructor' });
+  const totalCourses = await Course.countDocuments();
+  res.status(200).json({ totalStudents, totalCourses, totalInstructors });
+}));
+
+// Feedback submission endpoint
+app.post('/api/feedback', wrap(async (req, res) => {
+  console.log('[Feedback] Received feedback post:', req.body);
+  const { email, message } = req.body;
+  if (!email || !message) return res.status(400).json({ message: 'Email and message required' });
+  const feedbackDoc = new Feedback({ email, message });
+  await feedbackDoc.save();
+  res.status(201).json({ message: 'Feedback saved' });
+}));
+
+// Google OAuth strategy
+const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
+const BACKEND_URL = process.env.BACKEND_URL || `http://localhost:${process.env.PORT || 5174}`;
+passport.use(new GoogleStrategy({
+  clientID: process.env.GOOGLE_CLIENT_ID,
+  clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+  callbackURL: `${BACKEND_URL}/api/auth/google/callback`
+}, async (accessToken, refreshToken, profile, done) => {
+  try {
+    const email = profile.emails[0].value;
+    let user = await User.findOne({ email });
+    if (!user) {
+      // Generate a hashed password from profile ID for OAuth users
+      const hashedPassword = await bcrypt.hash(profile.id, 10);
+      user = new User({ name: profile.displayName, email, password: hashedPassword, role: 'student' });
+      await user.save();
+    }
+    done(null, user);
+  } catch (err) {
+    done(err, null);
+  }
+}));
+
+// OAuth routes
+app.get('/api/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
+app.get(
+  '/api/auth/google/callback',
+  passport.authenticate('google', { session: false, failureRedirect: `${FRONTEND_URL}/login?error=oauth` }),
+  (req, res) => {
+    // Issue JWT
+    const token = jwt.sign({ userId: req.user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+    // Determine frontend redirect based on role
+    const redirectPath = req.user.role === 'instructor' ? '/instructor-dashboard' : '/dashboard';
+    // Redirect to OAuth success handler with token and path
+    res.redirect(
+      `${FRONTEND_URL}/oauth-success?token=${token}&redirectPath=${encodeURIComponent(redirectPath)}`
+    );
+  }
+);
 
 // 404 handler
 app.use((req, res) => {
@@ -354,3 +777,12 @@ app.use((req, res) => {
 export default function handler(req, res) {
   return app(req, res);
 }
+
+// Start the server if running directly (not in Vercel)
+// Always start the server when running the file directly
+const PORT = process.env.PORT || 5174;
+app.listen(PORT, () => {
+  console.log(`[Server] API server running on http://localhost:${PORT}`);
+});
+
+// This is still needed for Vercel serverless deployment

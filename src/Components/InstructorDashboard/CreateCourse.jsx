@@ -1,7 +1,19 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './CreateCourse.css';
-import { createCourse } from '../../services/api';
+import { createCourse, fetchYouTubeMetadata } from '../../services/api';
+
+const courseCategories = [
+  'Web Development',
+  'Data Structures and Algorithms',
+  'Public Speaking',
+  'AI',
+  'Machine Learning',
+  'Cyber Security',
+  'Database Management',
+  'DevOps',
+  'Other'
+];
 
 export default function CreateCourse() {
   const navigate = useNavigate();
@@ -10,8 +22,6 @@ export default function CreateCourse() {
     description: '',
     category: '',
     level: 'beginner',
-    duration: '',
-    price: '0',
     thumbnail: '',
     lessons: [{ title: '', content: '', duration: '', videoUrl: '' }]
   });
@@ -38,6 +48,41 @@ export default function CreateCourse() {
       ...prev,
       lessons: updatedLessons
     }));
+    
+    // If the videoUrl field is changed and contains a YouTube URL, fetch metadata
+    if (name === 'videoUrl' && (value.includes('youtube.com') || value.includes('youtu.be'))) {
+      fetchYouTubeData(index, value);
+    }
+  };
+  
+  // Function to fetch YouTube video metadata
+  const fetchYouTubeData = async (index, url) => {
+    try {
+      console.log('Fetching YouTube metadata for URL:', url);
+      const metadata = await fetchYouTubeMetadata(url);
+      console.log('Received metadata:', metadata);
+      
+      // Update the lesson with the fetched metadata
+      const updatedLessons = [...formData.lessons];
+      updatedLessons[index] = {
+        ...updatedLessons[index],
+        title: updatedLessons[index].title || metadata.title,
+        content: updatedLessons[index].content || metadata.description || 'Watch the video to learn more.',
+        // Convert duration from seconds to minutes if available
+        duration: updatedLessons[index].duration || (metadata.duration ? Math.ceil(metadata.duration / 60).toString() : '10'),
+        // Important: Keep the videoUrl to prevent it from disappearing
+        videoUrl: url
+      };
+      
+      setFormData(prev => ({
+        ...prev,
+        lessons: updatedLessons
+      }));
+      
+    } catch (error) {
+      console.error('Error fetching YouTube metadata:', error);
+      // Don't show an error to the user, just log it
+    }
   };
 
   const addLesson = () => {
@@ -64,17 +109,14 @@ export default function CreateCourse() {
 
     try {
       // Validate form data
-      if (!formData.title || !formData.description || !formData.category || !formData.duration) {
+      if (!formData.title || !formData.description || !formData.category) {
         setError('Please fill in all required fields');
         setIsSubmitting(false);
         return;
       }
 
-      // Convert duration and price to numbers
       const courseData = {
         ...formData,
-        duration: Number(formData.duration),
-        price: Number(formData.price),
         lessons: formData.lessons.map(lesson => ({
           ...lesson,
           duration: Number(lesson.duration)
@@ -147,15 +189,18 @@ export default function CreateCourse() {
           <div className="form-row">
             <div className="form-group">
               <label htmlFor="category">Category *</label>
-              <input
-                type="text"
+              <select
                 id="category"
                 name="category"
                 value={formData.category}
                 onChange={handleChange}
                 required
-                placeholder="e.g., Technology"
-              />
+              >
+                <option value="">Select a category</option>
+                {courseCategories.map((cat) => (
+                  <option key={cat} value={cat}>{cat}</option>
+                ))}
+              </select>
             </div>
             
             <div className="form-group">
@@ -171,37 +216,6 @@ export default function CreateCourse() {
                 <option value="intermediate">Intermediate</option>
                 <option value="advanced">Advanced</option>
               </select>
-            </div>
-          </div>
-          
-          <div className="form-row">
-            <div className="form-group">
-              <label htmlFor="duration">Duration (minutes) *</label>
-              <input
-                type="number"
-                id="duration"
-                name="duration"
-                value={formData.duration}
-                onChange={handleChange}
-                required
-                min="1"
-                placeholder="Total duration in minutes"
-              />
-            </div>
-            
-            <div className="form-group">
-              <label htmlFor="price">Price *</label>
-              <input
-                type="number"
-                id="price"
-                name="price"
-                value={formData.price}
-                onChange={handleChange}
-                required
-                min="0"
-                step="0.01"
-                placeholder="0 for free courses"
-              />
             </div>
           </div>
           
@@ -288,14 +302,19 @@ export default function CreateCourse() {
                 
                 <div className="form-group">
                   <label htmlFor={`lesson-video-${index}`}>Video URL</label>
-                  <input
-                    type="url"
-                    id={`lesson-video-${index}`}
-                    name="videoUrl"
-                    value={lesson.videoUrl}
-                    onChange={(e) => handleLessonChange(index, e)}
-                    placeholder="URL to lesson video"
-                  />
+                  <div className="input-with-hint">
+                    <input
+                      type="url"
+                      id={`lesson-video-${index}`}
+                      name="videoUrl"
+                      value={lesson.videoUrl}
+                      onChange={(e) => handleLessonChange(index, e)}
+                      placeholder="URL to lesson video (YouTube links will auto-fill details)"
+                    />
+                    <div className="input-hint">
+                      Enter a YouTube URL to auto-fill title, description, and duration
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

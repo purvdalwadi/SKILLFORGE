@@ -1,10 +1,11 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
-import ReactPlayer from 'react-player/youtube'; // Import YouTube-specific player
-import { getCourseById, getEnrolledCourses, updateCourseProgress, saveLessonProgress, getLessonProgress } from '../../services/api';
+import React, { useState, useEffect, useCallback, useRef, useContext } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import ReactPlayer from 'react-player/youtube';
+import { getCourseById, getEnrolledCourses, saveLessonProgress, getLessonProgress } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import VideoLoader from '../common/VideoLoader';
 import './CourseView.css';
+import { UserContext } from '../../context/UserContext';
 
 // Helper function to extract YouTube video ID
 const getYouTubeId = (url) => {
@@ -14,324 +15,432 @@ const getYouTubeId = (url) => {
   return (match && match[2].length === 11) ? match[2] : null;
 };
 
+import { Link } from 'react-router-dom'; // Add Link import
+
 const CourseView = () => {
   const { courseId } = useParams();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user } = useAuth(); // Keep user if needed for auth checks elsewhere
+  const userContext = useContext(UserContext); // Keep if needed for other context interactions
   const playerRef = useRef(null);
-  
-  // State declarations
+  const saveIntervalRef = useRef(null); // Ref for interval timer
+
+  // State declarations for manual save strategy
   const [course, setCourse] = useState(null);
-  const [enrollment, setEnrollment] = useState(null);
+  const [enrollment, setEnrollment] = useState(null); // Keep for potential overall progress display (not updating)
   const [currentLessonIndex, setCurrentLessonIndex] = useState(0);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true); // Loading course data
   const [error, setError] = useState(null);
-  const [updating, setUpdating] = useState(false);
-  const [showCertificate, setShowCertificate] = useState(false);
-  const [videoReady, setVideoReady] = useState(false);
+  // const [videoReady, setVideoReady] = useState(false); // Player iframe is ready - Replaced by playerReady
   const [isPlaying, setIsPlaying] = useState(false);
-  const [playedSeconds, setPlayedSeconds] = useState(0);
-  const [videoProgress, setVideoProgress] = useState(0);
-  const [lessonCompleted, setLessonCompleted] = useState(false);
-  const [playerReady, setPlayerReady] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [seeking, setSeeking] = useState(false);
-  const [videoDuration, setVideoDuration] = useState(0);
-  const [lastSavedProgress, setLastSavedProgress] = useState(0);
+  const [playedSeconds, setPlayedSeconds] = useState(0); // Time from backend/localStorage to seek to
+  const [playerReady, setPlayerReady] = useState(false); // ReactPlayer internal ready state
+  const [isLoading, setIsLoading] = useState(true); // General loading state (includes video buffering)
+  const [videoDuration, setVideoDuration] = useState(0); // Duration of the video
+  const [isSeeking, setIsSeeking] = useState(false); // Flag to prevent saving during seek
 
-  // Update player configuration for better extension compatibility
-  const playerConfig = {
-    youtube: {
-      playerVars: {
-        origin: window.location.origin,
-        widget_referrer: window.location.origin,
-        enablejsapi: 1,
-        playsinline: 1,
-        modestbranding: 1,
-        rel: 0,
-        controls: 1,
-        iv_load_policy: 3,
-        fs: 1,
-        autoplay: 0,
-        loading: 'lazy'
-      },
-      onUnstarted: () => {
-        // Force player ready state when unstarted
-        setPlayerReady(true);
-        setVideoReady(true);
-        setIsLoading(false);
-      }
+  // --- Function to save progress --- 
+  const handleSaveProgress = useCallback(async (isEnding = false) => {
+    console.log(`[CourseView] handleSaveProgress called. isEnding: ${isEnding}`);
+
+    // --- STRONGER CHECKS ---
+    if (!course || !course.lessons || !Array.isArray(course.lessons) || course.lessons.length === 0) {
+      console.log("[CourseView] handleSaveProgress: Aborted - Course/Lessons data not ready in state.");
+      return;
     }
-  };
+    if (currentLessonIndex < 0 || currentLessonIndex >= course.lessons.length) {
+      console.log(`[CourseView] handleSaveProgress: Aborted - Index ${currentLessonIndex} out of bounds (Lessons: ${course.lessons.length}).`);
+      return;
+    }
+    const lesson = course.lessons[currentLessonIndex];
+    if (!lesson || !lesson._id) {
+      console.log(`[CourseView] handleSaveProgress: Aborted - Lesson at index ${currentLessonIndex} missing or has no _id. Lesson:`, lesson);
+      return;
+    }
+    const lessonId = lesson._id;
+    // --- END CHECKS ---
 
-  // Update progress handler - Define this first
-  const updateProgressHandler = useCallback(async () => {
-    if (!course?.lessons?.length || updating) return;
-    
+    // Check Player Ref and state
+    if (!playerRef.current || typeof playerRef.current.getCurrentTime !== 'function' || typeof playerRef.current.getDuration !== 'function') {
+      // Don't log if ending, as player might be gone
+      if (!isEnding) console.log("[CourseView] handleSaveProgress: Aborted - Player ref invalid or methods unavailable.");
+      // Attempt localStorage save even if player ref is bad, using last known state if possible
+      // This is a fallback for unload scenarios
+      const key = `progress_${courseId}_${lessonId}`;
+      const lastKnownTime = playedSeconds; // Use state as fallback
+      if (lastKnownTime > 0.1) {
+          localStorage.setItem(key, lastKnownTime.toString());
+          console.log(`[CourseView] handleSaveProgress: Saved ${lastKnownTime} to localStorage (fallback due to invalid player ref).`);
+      }
+      return;
+    }
+
+    // Prevent saving while seeking
+    if (isSeeking) {
+        console.log("[CourseView] handleSaveProgress: Aborted - Currently seeking.");
+        return;
+    }
+
+    let currentTime = 0;
+    let duration = 0;
     try {
-      setUpdating(true);
-      const lessonCount = course.lessons.length;
-      // Count completed lessons including current lesson if completed
-      const completedLessonsCount = course.lessons.reduce((count, _, index) => {
-        if (index < currentLessonIndex) return count + 1; // Previous lessons are completed
-        if (index === currentLessonIndex && lessonCompleted) return count + 1; // Current lesson if completed
-        return count;
-      }, 0);
-
-      // Calculate progress percentage
-      const newProgress = Math.ceil((completedLessonsCount / lessonCount) * 100);
-      
-      if (newProgress > (enrollment?.progress || 0)) {
-        const response = await updateCourseProgress(courseId, newProgress);
-        
-        if (response.success) {
-          setEnrollment(prev => ({
-            ...prev,
-            progress: newProgress,
-            completed: newProgress === 100
-          }));
-          
-          if (newProgress === 100) {
-            setShowCertificate(true);
-          }
+        currentTime = playerRef.current.getCurrentTime() || 0;
+        duration = playerRef.current.getDuration() || 0;
+        // Use duration if ending and it's valid
+        if (isEnding && duration > 0) {
+            currentTime = duration;
+            console.log(`[CourseView] handleSaveProgress: Using duration ${duration} as current time because isEnding=true.`);
         }
-      }
-    } catch (err) {
-      console.error('Error updating progress:', err);
-    } finally {
-      setUpdating(false);
-    }
-  }, [course, courseId, currentLessonIndex, enrollment, lessonCompleted, updating]);
-
-  // Handle player ready event
-  const handlePlayerReady = useCallback(() => {
-    setPlayerReady(true);
-    setVideoReady(true);
-    setIsLoading(false);
-  }, []);
-
-  // Handle video duration
-  const handleDuration = useCallback((duration) => {
-    setVideoDuration(duration);
-  }, []);
-
-  // Handle video progress - Now updateProgressHandler is defined before this
-  const handleProgress = useCallback(({ played, playedSeconds }) => {
-    if (!playerReady) return;
-    
-    // Calculate progress as percentage
-    const progress = Math.floor(played * 100);
-    setVideoProgress(progress);
-    setPlayedSeconds(playedSeconds);
-    
-    // Save progress if significant change (every 5 seconds)
-    if (Math.abs(playedSeconds - lastSavedProgress) > 5) {
-      const lessonId = course?.lessons?.[currentLessonIndex]?._id;
-      if (lessonId) {
-        saveLessonProgress(courseId, lessonId, playedSeconds).catch(console.error);
-        setLastSavedProgress(playedSeconds);
-      }
+    } catch (e) {
+        console.error("[CourseView] Error getting time from player:", e);
+        // Fallback to state if player methods fail
+        currentTime = playedSeconds;
+        console.log(`[CourseView] handleSaveProgress: Using state ${currentTime} as fallback due to player error.`);
     }
 
-    // Mark lesson as completed if watched more than 90%
-    if (progress >= 90 && !lessonCompleted) {
-      setLessonCompleted(true);
-      updateProgressHandler();
-    }
-  }, [playerReady, course, courseId, currentLessonIndex, lessonCompleted, lastSavedProgress, updateProgressHandler]);
+    // Only save if time is meaningful
+    if (currentTime > 0.1) {
+        const key = `progress_${courseId}_${lessonId}`;
+        console.log(`[CourseView] handleSaveProgress: Saving time ${currentTime} for Lesson ID: ${lessonId}`);
+        
+        // Save to localStorage first (more reliable)
+        try {
+            localStorage.setItem(key, currentTime.toString());
+            console.log(`[CourseView] handleSaveProgress: Saved to localStorage.`);
+        } catch (storageError) {
+            console.error('[CourseView] Error saving to localStorage:', storageError);
+        }
 
-  // Progress update effect
+        // Attempt backend save (allow failure)
+        try {
+            await saveLessonProgress(courseId, lessonId, currentTime);
+            console.log(`[CourseView] handleSaveProgress: Backend save successful.`);
+        } catch (err) {
+            console.error('[CourseView] Error saving progress to backend (will rely on localStorage):', err);
+            // No need to re-throw, localStorage is the primary source for resume now
+        }
+    } else {
+        console.log("[CourseView] handleSaveProgress: Skipped save - Time is not significant.");
+    }
+
+  }, [course, courseId, currentLessonIndex, playedSeconds, isSeeking]); // Added playedSeconds and isSeeking
+
+  // --- Initial data loading (Keep as is) ---
   useEffect(() => {
-    if (videoProgress > 0 && playerReady) {
-      const debounceTimeout = setTimeout(() => {
-        updateProgressHandler();
-      }, 2000);
-
-      return () => clearTimeout(debounceTimeout);
-    }
-  }, [videoProgress, updateProgressHandler, playerReady]);
-
-  // Initial data loading
-  useEffect(() => {
+    console.log("[CourseView] Initial load effect running...");
     const loadCourse = async () => {
       try {
         setLoading(true);
+        setError(null); // Reset error on load
         const courseData = await getCourseById(courseId);
         setCourse(courseData);
-        
-        // Get enrolled courses
+        // Fetch enrollment status (useful for UI elements or future features)
         const enrolledCoursesData = await getEnrolledCourses();
         const currentEnrollment = enrolledCoursesData.find(
           enrollment => enrollment.courseId._id === courseId
         );
-        
-        if (currentEnrollment) {
-          setEnrollment(currentEnrollment);
-        }
-        
+        setEnrollment(currentEnrollment); // Store enrollment status
         setLoading(false);
       } catch (err) {
-        setError(err.message);
+        console.error("Error loading course:", err);
+        setError(err.message || 'Failed to load course data.');
         setLoading(false);
       }
     };
-    
     loadCourse();
-  }, [courseId]);
+  }, [courseId]); // Depend only on courseId
 
-  // Fetch and seek to last watched second on lesson change
+  // --- Fetch last watched second --- 
   useEffect(() => {
-    const seekToLastWatched = async () => {
-      if (!course || !course.lessons?.length) return;
-      const lessonId = course.lessons[currentLessonIndex]?._id;
-      if (!lessonId) return;
-      let lastWatchedSecond = 0;
-      try {
-        const backend = await getLessonProgress(courseId, lessonId);
-        lastWatchedSecond = backend?.lastWatchedSecond || 0;
-      } catch (e) {
-        // fallback to localStorage
-        const key = `progress_${courseId}_${lessonId}`;
-        lastWatchedSecond = parseFloat(localStorage.getItem(key)) || 0;
-      }
-      setPlayedSeconds(lastWatchedSecond);
-      setSeeking(true);
-    };
-    seekToLastWatched();
-  }, [course, courseId, currentLessonIndex]);
-
-  // Seek player when ready
-  useEffect(() => {
-    if (playerReady && seeking && playerRef.current) {
-      try {
-        playerRef.current.seekTo(playedSeconds, 'seconds');
-      } catch {}
-      setSeeking(false);
+    if (!course || !course.lessons?.length || currentLessonIndex >= course.lessons.length) {
+      return; 
     }
-  }, [playerReady, seeking, playedSeconds]);
 
-  // Component JSX
+    const lessonId = course.lessons[currentLessonIndex]?._id;
+    if (!lessonId) {
+      console.log("[CourseView] Seek aborted: Lesson ID missing for current index.");
+      return; 
+    }
+
+    let isMounted = true; 
+
+    const fetchLastWatched = async () => {
+      console.log(`[CourseView] Attempting to fetch progress for Lesson ID: ${lessonId}`);
+      let lastWatchedSecond = 0;
+      const key = `progress_${courseId}_${lessonId}`;
+
+      try {
+        setIsLoading(true);
+        setPlayerReady(false); 
+
+        // Try backend first
+        const backendProgress = await getLessonProgress(courseId, lessonId);
+        const localProgress = parseFloat(localStorage.getItem(key)) || 0;
+        let lastWatchedSecond = Math.max(backendProgress?.lastWatchedSecond || 0, localProgress);
+
+        // If near end, reset to 0
+        if (videoDuration && lastWatchedSecond > videoDuration - 5) {
+          lastWatchedSecond = 0;
+        }
+
+        if (isMounted && backendProgress?.lastWatchedSecond) {
+          lastWatchedSecond = backendProgress.lastWatchedSecond;
+          console.log(`[CourseView] Fetched from backend: ${lastWatchedSecond}`);
+          // Update localStorage with backend value if newer/different?
+          // localStorage.setItem(key, lastWatchedSecond.toString()); 
+        } else {
+            // If backend fails or returns no progress, immediately try localStorage
+            throw new Error("Backend fetch failed or returned no progress");
+        }
+      } catch (e) {
+        // This block now catches backend errors *and* cases where backend had no data
+        console.warn('[CourseView] Backend fetch failed or no progress found, trying localStorage:', e.message);
+        lastWatchedSecond = parseFloat(localStorage.getItem(key)) || 0;
+        if (isMounted) {
+            console.log(`[CourseView] Fetched from localStorage: ${lastWatchedSecond}`);
+        }
+      }
+
+      if (isMounted) {
+        console.log(`[CourseView] Setting playedSeconds state to: ${lastWatchedSecond}`);
+        setPlayedSeconds(lastWatchedSecond); // Store the time to seek to
+        // Let onReady handle seeking and loading state
+      }
+    };
+
+    fetchLastWatched();
+
+    return () => {
+      isMounted = false;
+    };
+
+  }, [course, courseId, currentLessonIndex]); // Rerun only when lesson changes
+
+  // --- Save progress periodically and on unmount ---
+  useEffect(() => {
+    // Function to handle saving
+    const saveCurrentProgress = () => {
+        if (isPlaying && playerReady && !isSeeking) { // Only save if playing, ready, and not seeking
+            handleSaveProgress();
+        }
+    };
+
+    // Set up interval
+    saveIntervalRef.current = setInterval(saveCurrentProgress, 15000); // Save every 15 seconds
+
+    // Cleanup function
+    return () => {
+      console.log('[CourseView] Cleanup effect running - performing final save.');
+      clearInterval(saveIntervalRef.current); // Clear interval
+      saveCurrentProgress(); // Perform one final save immediately before unmount
+    };
+  }, [handleSaveProgress, isPlaying, playerReady, isSeeking]); // Re-run if these change
+
+  // --- Player Event Handlers ---
+  const handleReady = useCallback(() => {
+    console.log('[CourseView] Player is ready.');
+    setPlayerReady(true);
+    const player = playerRef.current;
+    if (player && playedSeconds > 0.1) {
+        console.log(`[CourseView] handleReady: Attempting to seek to ${playedSeconds}`);
+        setIsSeeking(true); // Set seeking flag before seek
+        try {
+            player.seekTo(playedSeconds, 'seconds');
+        } catch (err) {
+            console.error('[CourseView] Error during initial seekTo:', err);
+            setIsSeeking(false); // Reset flag on error
+        }
+        // Note: onSeek will handle resetting the flag and loading state
+    } else {
+        console.log('[CourseView] handleReady: No significant time to seek to or player not available.');
+        setIsLoading(false); // If not seeking, loading is finished
+    }
+  }, [playedSeconds]);
+
+  const handlePlay = () => {
+    console.log('[CourseView] Video playing.');
+    setIsPlaying(true);
+    setIsLoading(false); // Video is playing, so stop loading indicator
+  };
+
+  const handlePause = () => {
+    console.log('[CourseView] Video paused.');
+    setIsPlaying(false);
+    handleSaveProgress(); // Save immediately on pause
+  };
+
+  const handleEnded = () => {
+    console.log('[CourseView] Video ended.');
+    setIsPlaying(false);
+    handleSaveProgress(true); // Save final progress (duration)
+    // Optionally move to next lesson
+    // if (currentLessonIndex < course.lessons.length - 1) { ... }
+  };
+
+  const handleProgress = (state) => {
+    // Update playedSeconds state based on player's current time
+    // This helps if the initial seek wasn't perfect or for fallback saves
+    if (!isSeeking) { // Don't update state while seeking
+        setPlayedSeconds(state.playedSeconds);
+    }
+    // We could save here periodically, but the interval timer handles that
+    // console.log('[CourseView] Progress:', state.playedSeconds);
+  };
+
+  const handleDuration = (duration) => {
+    console.log('[CourseView] Video duration:', duration);
+    setVideoDuration(duration);
+  };
+
+  const handleSeek = (seconds) => {
+    console.log(`[CourseView] Seek operation completed at ${seconds}`);
+    setIsSeeking(false); // Reset seeking flag after seek completes
+    setIsLoading(false); // Seeking is done, stop loading indicator
+    // Save progress after seeking to capture the new position
+    // Use a small delay to ensure the state updates if needed
+    setTimeout(() => handleSaveProgress(), 100); 
+  };
+
+  const handleError = (e) => {
+    console.error('[CourseView] ReactPlayer Error:', e);
+    setError('Video playback error. Please try refreshing or check the video URL.');
+    setIsLoading(false);
+    setPlayerReady(false);
+  };
+
+  // --- Navigation ---
+  const handleNextLesson = () => {
+    if (currentLessonIndex < course.lessons.length - 1) {
+      handleSaveProgress(); // Save before switching
+      setCurrentLessonIndex(prevIndex => prevIndex + 1);
+      setPlayerReady(false); // Reset player ready state for new video
+      setIsLoading(true); // Show loading for next video
+      setPlayedSeconds(0); // Reset seek time for next lesson (will be fetched)
+    }
+  };
+
+  const handlePreviousLesson = () => {
+    if (currentLessonIndex > 0) {
+      handleSaveProgress(); // Save before switching
+      setCurrentLessonIndex(prevIndex => prevIndex - 1);
+      setPlayerReady(false);
+      setIsLoading(true);
+      setPlayedSeconds(0);
+    }
+  };
+
+  // --- Render Logic ---
   if (loading) {
-    return <div className="loading">Loading...</div>;
+    return <div className="course-view-loading">Loading Course...</div>;
   }
 
   if (error) {
-    return <div className="error">{error}</div>;
+    return <div className="course-view-error">Error: {error}</div>;
   }
 
-  if (!course) {
-    return <div className="not-found">Course not found</div>;
+  if (!course || !course.lessons || course.lessons.length === 0) {
+    return <div className="course-view-error">Course data is incomplete or unavailable.</div>;
   }
 
   const currentLesson = course.lessons[currentLessonIndex];
-  const videoUrl = currentLesson?.videoUrl;
-  const videoId = getYouTubeId(videoUrl);
-
-  const renderVideoPlayer = () => {
-    const youtubeUrl = currentLesson?.videoUrl;
-    const embedUrl = youtubeUrl?.includes('embed') ? 
-      youtubeUrl : 
-      `https://www.youtube.com/embed/${getYouTubeId(youtubeUrl)}`;
-
-    return (
-      <ReactPlayer
-        ref={playerRef}
-        url={embedUrl}
-        width="100%"
-        height="100%"
-        className="react-player"
-        config={playerConfig}
-        onReady={(player) => {
-          handlePlayerReady();
-          if (player && player.getIframe) {
-            const iframe = player.getIframe();
-            iframe.setAttribute('data-origin', window.location.origin);
-            iframe.setAttribute('title', currentLesson?.title || 'Course Video');
-          }
-        }}
-        onProgress={handleProgress}
-        onDuration={handleDuration}
-        onBuffer={() => setIsLoading(true)}
-        onBufferEnd={() => setIsLoading(false)}
-        onError={(e) => {
-          console.error('Video error:', e);
-          setError('Failed to load video. Please check your internet connection and try again.');
-          setIsLoading(false);
-        }}
-        onPlay={() => setIsPlaying(true)}
-        onPause={() => setIsPlaying(false)}
-        onEnded={() => {
-          setLessonCompleted(true);
-          updateProgressHandler();
-        }}
-        playing={isPlaying}
-        controls={true}
-        pip={false}
-        stopOnUnmount={true}
-        light={false}
-        playsinline={true}
-      />
-    );
-  };
+  const videoId = getYouTubeId(currentLesson?.videoUrl);
 
   return (
-    <div className="course-view">
-      {/* Back button to dashboard */}
-      <div className="pl-0 mb-4 ">
-        <button
-          className="back-button"
-          onClick={() => navigate('/dashboard')}
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-          </svg>
-          Back to Dashboard
-        </button>
+    <div className="course-view-container">
+      {/* Back to Dashboard Button */}
+      <div className="back-to-dashboard-container">
+        <Link to="/dashboard" className="back-button">
+          &larr; Back to Dashboard
+        </Link>
       </div>
 
-      {/* Lesson Title Section */}
-      <div className="lesson-title-section">
-        <h2>{currentLesson?.title || 'Untitled Lesson'}</h2>
-      </div>
-
-      {/* Video Container */}
-      <div className="video-player-container">
-        {isLoading && (
-          <div className="absolute inset-0 flex items-center justify-center bg-gray-100 rounded-lg">
-            <VideoLoader />
+      <div className="course-view-main-content">
+        {/* Lesson Navigation Section (Moved to the left) */}
+        <div className="lesson-navigation-section">
+          <h3>Course Content</h3>
+          <ul className="lesson-list">
+            {course.lessons.map((lesson, index) => (
+              <li 
+                key={lesson._id || index} 
+                className={`lesson-item ${index === currentLessonIndex ? 'active' : ''}`}
+                onClick={() => {
+                  handleSaveProgress(); // Save before switching
+                  setCurrentLessonIndex(index);
+                  setPlayerReady(false);
+                  setIsLoading(true);
+                  setPlayedSeconds(0);
+                }}
+              >
+                <span className="lesson-index">{index + 1}</span>
+                <span className="lesson-item-title">{lesson.title}</span>
+                {/* Optional: Add duration display */} 
+                {/* <span className="lesson-duration">{lesson.duration} min</span> */} 
+              </li>
+            ))}
+          </ul>
+          <div className="navigation-buttons">
+            <button 
+              onClick={handlePreviousLesson} 
+              disabled={currentLessonIndex === 0}
+              className="nav-button prev-button"
+            >
+              Previous
+            </button>
+            <button 
+              onClick={handleNextLesson} 
+              disabled={currentLessonIndex === course.lessons.length - 1}
+              className="nav-button next-button"
+            >
+              Next
+            </button>
           </div>
-        )}
-        <div className="aspect-w-16 aspect-h-9">
-          {renderVideoPlayer()}
+        </div>
+
+        {/* Video Player Section (Moved to the right) */}
+        <div className="video-player-section">
+          <h2 className="lesson-title">{currentLesson?.title || 'Loading Lesson...'}</h2>
+          <div className="video-wrapper">
+            {isLoading && <VideoLoader />} 
+            {videoId ? (
+              <ReactPlayer
+                ref={playerRef}
+                url={`https://www.youtube.com/watch?v=${videoId}`}
+                className='react-player'
+                width='100%'
+                height='100%'
+                controls={true}
+                playing={isPlaying} // Control playing state
+                onReady={handleReady}
+                onPlay={handlePlay}
+                onPause={handlePause}
+                onEnded={handleEnded}
+                onProgress={handleProgress}
+                onDuration={handleDuration}
+                onError={handleError}
+                onSeek={handleSeek} // Add onSeek handler
+                config={{
+                  youtube: {
+                    playerVars: { 
+                        showinfo: 0, 
+                        rel: 0, 
+                        modestbranding: 1,
+                        // Consider adding origin based on your deployment
+                        // origin: window.location.origin 
+                    }
+                  }
+                }}
+              />
+            ) : (
+              <div className="video-placeholder">No valid video URL for this lesson.</div>
+            )}
+          </div>
+          {/* Lesson Description */}
+          <div className="lesson-description">
+            <h3>Lesson Description</h3>
+            <p>{currentLesson?.content || 'No description available.'}</p>
+          </div>
         </div>
       </div>
-
-      {/* Navigation controls */}
-      <div className="lesson-navigation">
-        <button
-          onClick={() => setCurrentLessonIndex(prev => Math.max(0, prev - 1))}
-          disabled={currentLessonIndex === 0}
-        >
-          Previous Lesson
-        </button>
-        <button
-          onClick={() => setCurrentLessonIndex(prev => Math.min(course.lessons.length - 1, prev + 1))}
-          disabled={currentLessonIndex === course.lessons.length - 1}
-        >
-          Next Lesson
-        </button>
-      </div>
-
-      {/* Lesson details */}
-      <div className="lesson-details">
-        <p>{currentLesson?.content}</p>
-      </div>
-
-      {showCertificate && (
-        <div className="certificate-notification">
-          Congratulations! You've completed the course!
-        </div>
-      )}
     </div>
   );
 };

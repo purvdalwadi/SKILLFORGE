@@ -1,8 +1,16 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import './Home.css';
 import { Link } from 'react-router-dom';
+import { getStatsSummary } from '../../services/api';
 
 export default function Home() {
+    const [stats, setStats] = useState({ students: 0, courses: 0, instructors: 0 });
+    useEffect(() => {
+        getStatsSummary()
+            .then(data => setStats({ students: data.totalStudents, courses: data.totalCourses, instructors: data.totalInstructors }))
+            .catch(err => console.error('Failed to fetch stats', err));
+    }, []);
+
     return (
         <>
             {/* Home Section */}
@@ -25,20 +33,16 @@ export default function Home() {
                 </div>
                 <div className="stats">
                     <div className="stat-item">
-                        <div className="stat-number">1,000+</div>
+                        <div className="stat-number">{stats.students}</div>
                         <div className="stat-label">Active Learners</div>
                     </div>
                     <div className="stat-item">
-                        <div className="stat-number">20+</div>
+                        <div className="stat-number">{stats.courses}</div>
                         <div className="stat-label">Courses Available</div>
                     </div>
                     <div className="stat-item">
-                        <div className="stat-number">15+</div>
+                        <div className="stat-number">{stats.instructors}</div>
                         <div className="stat-label">Expert Instructors</div>
-                    </div>
-                    <div className="stat-item">
-                        <div className="stat-number">85%</div>
-                        <div className="stat-label">Employment Rate</div>
                     </div>
                 </div>
             </section>

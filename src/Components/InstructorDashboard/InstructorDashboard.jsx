@@ -9,6 +9,12 @@ export default function InstructorDashboard() {
   const [courses, setCourses] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [stats, setStats] = useState({
+    totalCourses: 0,
+    totalStudents: 0,
+    averageCompletion: 0,
+    totalLessons: 0
+  });
   const { user } = useAuth();
 
   useEffect(() => {
@@ -16,7 +22,40 @@ export default function InstructorDashboard() {
       try {
         setIsLoading(true);
         const response = await getInstructorCourses();
-        setCourses(response || []);
+        const instructorCourses = response || [];
+        setCourses(instructorCourses);
+        
+        // Calculate dashboard statistics
+        if (instructorCourses.length > 0) {
+          console.log('Instructor courses with enrollment data:', instructorCourses);
+          
+          // Calculate total students using the new enrollmentStats field
+          const totalStudents = instructorCourses.reduce(
+            (total, course) => total + (course.enrollmentStats?.count || 0), 0
+          );
+          
+          console.log('Total students enrolled across all courses:', totalStudents);
+          
+          const totalLessons = instructorCourses.reduce(
+            (total, course) => total + (course.lessons?.length || 0), 0
+          );
+          
+          const averageCompletion = instructorCourses.reduce(
+            (sum, course) => {
+              const courseProgress = course.enrolledStudents?.reduce(
+                (avg, student) => avg + (student.progress || 0), 0
+              ) || 0;
+              return sum + (courseProgress / (course.enrolledStudents?.length || 1));
+            }, 0
+          ) / (instructorCourses.length || 1);
+          
+          setStats({
+            totalCourses: instructorCourses.length,
+            totalStudents,
+            averageCompletion: Math.round(averageCompletion),
+            totalLessons
+          });
+        }
       } catch (err) {
         console.error('Error fetching instructor courses:', err);
         setError('Failed to load your courses. Please try again later.');
@@ -25,9 +64,20 @@ export default function InstructorDashboard() {
       }
     };
 
-    if (user && user.role === 'instructor') {
+    // Check both user object and localStorage for role
+    const storedRole = localStorage.getItem('userRole');
+    const isInstructorUser = user?.role === 'instructor' || storedRole === 'instructor';
+    
+    if (user && isInstructorUser) {
+      console.log('Fetching instructor courses for', user.name, 'with role:', user.role);
       fetchCourses();
     } else {
+      console.log('Not fetching instructor courses:', { 
+        userExists: !!user, 
+        userRole: user?.role,
+        storedRole,
+        isInstructorUser 
+      });
       setIsLoading(false);
     }
   }, [user]);
@@ -49,24 +99,19 @@ export default function InstructorDashboard() {
       <section className="dashboard-overview">
         <div className="overview-card">
           <h3>Total Courses</h3>
-          <span className="stat-value">{courses.length}</span>
+          <span className="stat-value">{stats.totalCourses}</span>
         </div>
         <div className="overview-card">
           <h3>Total Students</h3>
-          <span className="stat-value">
-            {courses.reduce((total, course) => total + (course.enrolledStudents || 0), 0)}
-          </span>
+          <span className="stat-value">{stats.totalStudents}</span>
+        </div>
+        <div className="overview-card">
+          <h3>Total Lessons</h3>
+          <span className="stat-value">{stats.totalLessons}</span>
         </div>
         <div className="overview-card">
           <h3>Average Completion</h3>
-          <span className="stat-value">
-            {courses.length > 0
-              ? Math.round(
-                  courses.reduce((sum, course) => sum + (course.averageProgress || 0), 0) /
-                    courses.length
-                )
-              : 0}%
-          </span>
+          <span className="stat-value">{stats.averageCompletion}%</span>
         </div>
       </section>
 
@@ -96,6 +141,7 @@ export default function InstructorDashboard() {
                   <div className="course-meta">
                     <span>{course.level || 'All Levels'}</span>
                     <span>{course.lessons ? `${course.lessons.length} lessons` : '0 lessons'}</span>
+                    <span>{course.enrollmentStats?.count || 0} students</span>
                   </div>
                   <div className="course-actions">
                     <Link to={`/edit-course/${course._id}`} className="edit-course-btn">
@@ -103,7 +149,7 @@ export default function InstructorDashboard() {
                     </Link>
                     <button 
                       className="view-stats-btn"
-                      onClick={() => navigate(`/course-stats/${course._id}`)}
+                      onClick={() => navigate('/instructor/stats-under-development')}
                     >
                       View Stats
                     </button>

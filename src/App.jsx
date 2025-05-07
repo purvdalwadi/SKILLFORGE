@@ -8,15 +8,19 @@ import Dashboard from './Components/Dashboard/Dashboard';
 import About from './Components/About/About';
 import Login from './Components/login/Login';
 import Signup from './Components/signup/Signup';
+import OAuthSuccess from './Components/common/OAuthSuccess';
+import EnrollmentSuccess from './Components/common/EnrollmentSuccess';
 import Technology from './Components/Courses/Technology';
 import CoursePreview from './Components/Courses/CoursePreview';
 import CourseView from './Components/Student/CourseView';
 import InstructorDashboard from './Components/InstructorDashboard/InstructorDashboard';
 import CreateCourse from './Components/InstructorDashboard/CreateCourse';
 import EditCourse from './Components/InstructorDashboard/EditCourse';
+import StatsUnderDevelopment from './Components/InstructorDashboard/StatsUnderDevelopment';
 import ProtectedRoute from './Components/common/ProtectedRoute';
 import { AuthProvider } from './context/AuthContext';
 import { UserProvider } from './context/UserContext';
+import { ThemeProvider } from './context/ThemeContext';
 
 // Error component
 const ErrorPage = () => {
@@ -126,6 +130,26 @@ const router = createBrowserRouter(
         } 
         errorElement={<ErrorPage />}
       />
+      {/* Temporary Stats Under Development Route */}
+      <Route
+        path='instructor/stats-under-development'
+        element={
+          <ProtectedRoute requiredRole="instructor">
+            <StatsUnderDevelopment />
+          </ProtectedRoute>
+        }
+        errorElement={<ErrorPage />}
+      />
+      <Route
+        path='oauth-success'
+        element={<OAuthSuccess />}
+        errorElement={<ErrorPage />}
+      />
+      <Route
+        path='enrollment-success'
+        element={<EnrollmentSuccess />}
+        errorElement={<ErrorPage />}
+      />
     </Route>
   )
 );
@@ -135,7 +159,9 @@ function App() {
     <StrictMode>
       <AuthProvider>
         <UserProvider>
-          <RouterProvider router={router} />
+          <ThemeProvider>
+            <RouterProvider router={router} />
+          </ThemeProvider>
         </UserProvider>
       </AuthProvider>
     </StrictMode>
@@ -143,4 +169,3 @@ function App() {
 }
 
 export default App;
-

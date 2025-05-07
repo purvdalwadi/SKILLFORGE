@@ -10,8 +10,17 @@ body.dark-mode .create-course-container{
   background-color: #111827;
 }
 
+<<<<<<< Updated upstream
 body.dark-mode 
 {
+=======
+body.dark-mode.create-course-container h2,
+body.dark-mode.create-course-container h3,
+body.dark-mode.create-course-container label,
+body.dark-mode.create-course-container input,
+body.dark-mode.create-course-container textarea,
+body.dark-mode.create-course-container select {
+>>>>>>> Stashed changes
   color: #ffffff;
 }
 

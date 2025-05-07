@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
+import { useTheme } from '../../context/ThemeContext';
 import './Courses.css';
 import { Link } from 'react-router-dom';
 import { getAllCourses } from '../../services/api';
@@ -15,26 +16,37 @@ const Courses = () => {
   const userContext = useContext(UserContext);
   const enrolledCourses = userContext?.enrolledCourses || [];
   const coursesLoading = userContext?.coursesLoading || false;
+  const { darkMode } = useTheme();
 
-  const categories = [
-    { name: 'All' },
-    { name: 'Web Development' },
-    { name: 'Data Science' },
-    { name: 'Design' },
-    { name: 'Marketing' }
-  ];
+  // We'll set categories as state instead of a constant
+  const [categories, setCategories] = useState(['All']);
+
 
   const fetchCourses = async () => {
     try {
       setLoading(true);
       setError(null);
+      console.log('Fetching all courses...');
       const fetchedCourses = await getAllCourses();
       
       if (!Array.isArray(fetchedCourses)) {
         throw new Error('Invalid response format');
       }
       
+      console.log('Courses fetched successfully:', fetchedCourses);
       setCourses(fetchedCourses);
+      
+      // Extract unique categories from courses
+      const uniqueCategories = Array.from(new Set(fetchedCourses.map(c => c.category).filter(Boolean)));
+      console.log('Unique categories found:', uniqueCategories);
+      
+      // Update categories state with 'All' and the unique categories
+      setCategories(['All', ...uniqueCategories]);
+      
+      // Populate global categories for dropdowns in create/edit pages
+      window.allCourseCategories = uniqueCategories;
+      console.log('Global categories set:', window.allCourseCategories);
+
     } catch (err) {
       console.error('Error fetching courses:', err);
       setError(err.response?.data?.message || 'Failed to load courses. Please try again.');
@@ -67,16 +79,17 @@ const Courses = () => {
     }
 
     return (
-      <div className="course-card" key={courseData._id}>
+      <div className={`course-card${darkMode ? ' dark-course-card' : ''}`} key={courseData._id}>
         <div className="course-thumbnail">
           {courseData.thumbnail ? (
             <img 
-              src={courseData.thumbnail} 
+              src={courseData.thumbnail}
               alt={courseData.title} 
               onError={(e) => {
                 e.target.onerror = null;
                 e.target.src = '/default-course-thumbnail.png';
               }}
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
             />
           ) : (
             <div className="placeholder-thumbnail">
@@ -86,7 +99,7 @@ const Courses = () => {
         </div>
         <div className="course-details">
           <span className="course-category">
-            {courseData.category}
+            {courseData.category || 'General'}
           </span>
           <h3>{courseData.title}</h3>
           <div className="course-meta">
@@ -144,7 +157,7 @@ const Courses = () => {
   }
 
   return (
-    <div className="courses">
+    <div className={`courses courses-page ${darkMode ? 'dark-courses-page' : ''}`}>
       {user && enrolledCourses.length > 0 && (
         <div className="enrolled-courses-section">
           <h2>My Enrolled Courses</h2>
@@ -162,11 +175,11 @@ const Courses = () => {
         <div className="course-filters">
           {categories.map((category) => (
             <button 
-              key={category.name}
-              className={`filter-btn ${selectedCategory === category.name ? 'active' : ''}`}
-              onClick={() => setSelectedCategory(category.name)}
+              key={category}
+              className={`filter-btn ${selectedCategory === category ? 'active' : ''}`}
+              onClick={() => setSelectedCategory(category)}
             >
-              {category.name}
+              {category}
             </button>
           ))}
         </div>
@@ -188,5 +201,3 @@ const Courses = () => {
 };
 
 export default Courses;
-
-

@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { getCourseById, enrollInCourse } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import { UserContext } from '../../context/UserContext';
+import EnrollmentModal from '../common/EnrollmentModal';
 import './CoursePreview.css';
 
 const CoursePreview = () => {
@@ -15,7 +16,10 @@ const CoursePreview = () => {
   const [course, setCourse] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [enrollError, setEnrollError] = useState(null); // Separate error state for enrollment
   const [enrolling, setEnrolling] = useState(false);
+  const [showEnrollModal, setShowEnrollModal] = useState(false);
+  const [enrollModalStage, setEnrollModalStage] = useState('loading');
   const [activeTab, setActiveTab] = useState('overview');
   const [videoError, setVideoError] = useState(false);
   const [videoLoading, setVideoLoading] = useState(true);
@@ -42,6 +46,7 @@ const CoursePreview = () => {
   const handleVideoError = (e) => {
     console.error('Video loading error:', e);
     setVideoError(true);
+    setVideoLoading(false); // Hide loader on error
   };
 
   // Reset video error when changing videos
@@ -54,27 +59,34 @@ const CoursePreview = () => {
     const videoRef = useRef(null);
 
     useEffect(() => {
-      setVideoLoading(true);
-      setVideoError(false);
+      // Only reset if src is valid, otherwise set error/loading appropriately
+      if (src) {
+        setVideoLoading(true);
+        setVideoError(false);
+      } else {
+        setVideoLoading(false); // No src, so not loading
+        setVideoError(true); // Treat missing src as an error
+      }
     }, [src]);
 
     const handleLoadedData = () => {
       setVideoLoading(false);
     };
 
-    if (videoError) {
+    if (!src || videoError) { // Check for src validity here as well
       return (
         <div className="video-error-container bg-gray-100 p-4 rounded-lg text-center">
-          <p className="text-red-500 mb-2">Video playback error</p>
-          <p className="text-sm text-gray-600">The video content could not be loaded. Please try again later.</p>
+          <p className="text-red-500 mb-2">{ !src ? 'No preview video available.' : 'Video playback error'}</p>
+          { !src ? null : <p className="text-sm text-gray-600">The video content could not be loaded. Please try again later.</p> }
         </div>
       );
     }
 
     return (
       <>
-        {videoLoading && <VideoLoader />}
+        {videoLoading && <VideoLoader />} 
         <video
+          key={src} // Add key to force re-render on src change
           ref={videoRef}
           className={`w-full rounded-lg shadow-lg ${videoLoading ? 'hidden' : ''}`}
           controls
@@ -85,42 +97,77 @@ const CoursePreview = () => {
           playsInline
           preload="auto"
         >
-          {src && <source src={src} type="video/mp4" />}
+          <source src={src} type="video/mp4" />
           Your browser does not support the video tag.
         </video>
       </>
     );
   };
 
+  // Use a ref to track if enrollment is in progress to prevent double-clicks
+  const enrollingRef = useRef(false);
+
   const handleEnroll = async () => {
+    // Prevent double-clicks by checking the ref
+    if (enrollingRef.current) {
+      console.log('Enrollment already in progress, ignoring click');
+      return;
+    }
+
     if (!user) {
+      window.alert('Please log in to your account before enrolling in a course.');
       navigate('/login', { state: { from: `/courses/${courseId}` } });
       return;
     }
     
+    // Start enrollment process and set the ref
+    enrollingRef.current = true;
     setEnrolling(true);
-    setError(null);
+    setEnrollError(null); // Clear enrollment errors
     
     try {
       const response = await enrollInCourse(courseId);
       
-      if (response.success) {
+      if (response && response.success) {
         // Refresh enrolled courses in UserContext
-        if (userContext?.fetchEnrolledCourses) {
-          await userContext.fetchEnrolledCourses();
+        try {
+          if (userContext?.fetchEnrolledCourses) {
+            await userContext.fetchEnrolledCourses();
+          }
+        } catch (contextErr) {
+          console.error('Error refreshing enrolled courses:', contextErr);
+          // Continue with success flow even if context refresh fails
         }
-        navigate('/dashboard');
+        
+        // Redirect to dedicated success page
+        console.log('Enrollment successful, redirecting to success page');
+        window.location.href = '/enrollment-success';
+        return; // Early return to avoid resetting enrolling state
       } else {
-        setError(response.message || 'Failed to enroll in course. Please try again.');
+        // Show error
+        setEnrollError(response?.message || 'Failed to enroll in course. Please try again.');
       }
     } catch (err) {
       console.error('Error enrolling in course:', err);
+      
+      // Check if this is an 'already enrolled' error (400 status)
+      if (err.response && err.response.status === 400 && 
+          err.response.data && err.response.data.message === 'Already enrolled in this course') {
+        // Handle 'already enrolled' case - redirect to dashboard
+        console.log('User already enrolled, redirecting to dashboard');
+        window.location.href = '/dashboard';
+        return; // Early return to avoid resetting enrolling state
+      }
+      
       const errorMessage = err.message || err.error || 'Failed to enroll in course. Please try again.';
-      setError(errorMessage);
+      setEnrollError(errorMessage);
     } finally {
+      // Reset the enrolling state and ref if we haven't redirected
       setEnrolling(false);
+      enrollingRef.current = false;
     }
   };
+
   
   if (loading) {
     return (
@@ -464,19 +511,36 @@ const CoursePreview = () => {
           <h2>Ready to start learning?</h2>
           <p>Join thousands of students already enrolled in this course</p>
         </div>
-        
         <button 
           onClick={handleEnroll} 
           disabled={enrolling}
-          className="enroll-btn-large"
+          className={`enroll-btn-large ${enrolling ? 'opacity-75 cursor-not-allowed' : ''}`}
         >
-          {enrolling ? 'Enrolling...' : 'Enroll Now'}
+          {enrolling ? (
+            <>
+              <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              Enrolling...
+            </>
+          ) : 'Enroll Now'}
         </button>
       </div>
 
-      {error && (
-        <div className="error-message" style={{ color: 'red', marginBottom: '1rem', textAlign: 'center' }}>
-          {error}
+      {/* Enrollment modal */}
+      {showEnrollModal && (
+        <EnrollmentModal 
+          stage={enrollModalStage} 
+          onClose={() => setShowEnrollModal(false)}
+        />
+      )}
+
+      {/* Show enrollment errors in a non-page-blocking way */}
+      {enrollError && (
+        <div className="error-message" style={{ color: 'red', marginBottom: '1rem', textAlign: 'center', padding: '0.75rem', backgroundColor: '#FEE2E2', borderRadius: '0.375rem' }}>
+          <p className="font-medium">Enrollment Error</p>
+          <p>{enrollError}</p>
         </div>
       )}
     </div>

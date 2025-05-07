@@ -5,7 +5,7 @@ export default function About() {
   return (
     <div className="about">
       <div className="section-header">
-        <h2>About SKILLFORGE</h2>
+        <h2>ABOUT SKILLFORGE</h2>
         <p>Building Gujarat's future workforce through accessible, industry-relevant skill development</p>
       </div>
       <div className="about-content">

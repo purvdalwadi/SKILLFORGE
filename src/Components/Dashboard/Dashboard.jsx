@@ -1,10 +1,12 @@
 import React, { useContext, useEffect, useState } from 'react';
+import { useTheme } from '../../context/ThemeContext';
 import { UserContext } from '../../context/UserContext';
 import { Link } from 'react-router-dom';
 import Spinner from '../common/Spinner';
 import './Dashboard.css';
 
 const Dashboard = () => {
+  const { darkMode } = useTheme();
   const { 
     user, 
     enrolledCourses, 
@@ -20,12 +22,21 @@ const Dashboard = () => {
     completed: 0
   });
 
-  // Fetch courses only once when component mounts or user changes
+  // Fetch courses immediately when component mounts or user changes
   useEffect(() => {
-    if (user && !coursesLoading) {
-      fetchEnrolledCourses();
+    if (user) {
+      console.log('Dashboard mounted with user, fetching enrolled courses');
+      // Force an immediate fetch with a small delay to ensure token is set
+      setTimeout(() => {
+        fetchEnrolledCourses();
+      }, 100);
     }
-  }, [user]);
+  }, [user, fetchEnrolledCourses]);
+  
+  // Force refresh when enrolledCourses changes
+  useEffect(() => {
+    console.log(`Dashboard detected ${enrolledCourses?.length || 0} enrolled courses`);
+  }, [enrolledCourses]);
 
   // Calculate stats when enrolled courses change
   useEffect(() => {
@@ -74,7 +85,7 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="dashboard-container">
+    <div className={`dashboard dashboard-page ${darkMode ? 'dark-dashboard-page' : ''}`}>
       <h1>Dashboard</h1>
       
       <div className="dashboard">
@@ -82,18 +93,20 @@ const Dashboard = () => {
           <h2>Your Progress</h2>
         </div>
         
-        <div className="dashboard-stats">
-          <div className="stat-card">
-            <span className="stat-value">{stats.totalCourses}</span>
-            <span className="stat-label">Total Courses</span>
-          </div>
-          <div className="stat-card">
-            <span className="stat-value">{stats.inProgress}</span>
-            <span className="stat-label">In Progress</span>
-          </div>
-          <div className="stat-card">
-            <span className="stat-value">{stats.completed}</span>
-            <span className="stat-label">Completed</span>
+        <div className={`dashboard-page${darkMode ? ' dark-dashboard-page' : ''}`}>
+          <div className="dashboard-stats">
+            <div className="stat-card">
+              <span className="stat-value">{stats.totalCourses}</span>
+              <span className="stat-label">Total Courses</span>
+            </div>
+            <div className="stat-card">
+              <span className="stat-value">{stats.inProgress}</span>
+              <span className="stat-label">In Progress</span>
+            </div>
+            <div className="stat-card">
+              <span className="stat-value">{stats.completed}</span>
+              <span className="stat-label">Completed</span>
+            </div>
           </div>
         </div>
 
@@ -116,6 +129,7 @@ const Dashboard = () => {
                       src={course.courseId.thumbnail} 
                       alt={course.courseId.title}
                       className="course-thumbnail"
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                     />
                   ) : (
                     <div className="course-thumbnail-placeholder">
