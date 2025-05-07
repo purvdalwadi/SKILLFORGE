@@ -85,15 +85,15 @@ body.dark-mode {
     box-shadow: 0 2px 16px 0 rgba(0,0,0,0.07);
     padding: 0.05rem 0 0.05rem 0;
     transition: background 0.4s, box-shadow 0.3s;
-    backdrop-filter: blur(14px) saturate(160%);
     -webkit-backdrop-filter: blur(14px) saturate(160%);
+    backdrop-filter: blur(14px) saturate(160%);
 }
 
 .dark-navbar {
     background: rgba(17,24,39,0.78);
     color: #fff;
-    backdrop-filter: blur(14px) saturate(160%);
     -webkit-backdrop-filter: blur(14px) saturate(160%);
+    backdrop-filter: blur(14px) saturate(160%);
 }
 
 .dark-navbar .logo span {
