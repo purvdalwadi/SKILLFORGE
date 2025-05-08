@@ -2,7 +2,7 @@
 import mongoose from 'mongoose';
 
 // Fallback to hardcoded URI if environment variable is not available
-const MONGODB_URI = process.env.MONGODB_URI || "mongodb://kaushal:kaushal9898@kaushal-cluster-shard-00-00.rhcix.mongodb.net:27017,kaushal-cluster-shard-00-01.rhcix.mongodb.net:27017,kaushal-cluster-shard-00-02.rhcix.mongodb.net:27017/?replicaSet=atlas-5f006n-shard-0&ssl=true&authSource=admin&retryWrites=true&w=majority&appName=kaushal-cluster";
+const MONGODB_URI = process.env.MONGODB_URI ;
 
 console.log('Using MongoDB URI:', MONGODB_URI ? 'URI is set' : 'URI is undefined');
 
