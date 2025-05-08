@@ -1,8 +1,8 @@
 // /api/utils/dbConnect.js
 import mongoose from 'mongoose';
 
-// Fallback to hardcoded URI if environment variable is not available
-const MONGODB_URI = process.env.MONGODB_URI ;
+// Use only environment variable for MongoDB connection
+const MONGODB_URI = process.env.MONGODB_URI;
 
 console.log('Using MongoDB URI:', MONGODB_URI ? 'URI is set' : 'URI is undefined');
 

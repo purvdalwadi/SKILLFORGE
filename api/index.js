@@ -9,7 +9,7 @@ const __dirname = path.dirname(__filename);
 
 // Load environment variables first
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
-console.log('MONGODB_URI in index.js:', process.env.MONGODB_URI || 'Undefined');
+console.log('MONGODB_URI in index.js:', process.env.MONGODB_URI ? 'URI is set' : 'URI is undefined');
 
 // Then import other modules
 import express from 'express';
