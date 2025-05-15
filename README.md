@@ -91,7 +91,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## 📞 Contact
 Kaushal - (https://www.linkedin.com/in/kaushal-darji-8b6420312?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app)
-Purv - (linkedin-profile-link)
+Purv - (www.linkedin.com/in/purv-dalwadi-54a825349)
 Jash - (linkedin-profile-link)
 Trush - (linkedin-profile-link)
 Soham - (linkedin-profile-link)
