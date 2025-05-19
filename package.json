@@ -8,7 +8,7 @@
     "dev": "vite",
     "build": "npx --yes vite build",
     "preview": "vite preview",
-    "build:frontend": "npx --yes vite build"
+    "build:frontend": "node ./node_modules/vite/bin/vite.js build"
   },
     "engines": {
       "node": ">=18.0.0",
