@@ -8,7 +8,6 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "postinstall": "vite build",
     "build:frontend": "vite build",
     "build:api": "npm install --prefix api",
     "vercel-build": "npm run build:frontend && npm run build:api"
