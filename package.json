@@ -9,8 +9,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "build:frontend": "vite build",
-    "build:api": "npm install --prefix api",
-    "vercel-build": "npm run build:frontend && npm run build:api"
+
   },
     "engines": {
       "node": ">=18.0.0",
