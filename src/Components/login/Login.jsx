@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import './Login.css';
 // We'll use a regular image instead of SVG
@@ -7,7 +7,6 @@ import './Login.css';
 
 const Login = () => {
   const navigate = useNavigate();
-  const location = useLocation();
   const { login, error: authError } = useAuth();
   
   const [showPassword, setShowPassword] = useState(false);

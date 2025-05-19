@@ -214,7 +214,7 @@ const CourseView = () => {
       isMounted = false;
     };
 
-  }, [course, courseId, currentLessonIndex]); // Rerun only when lesson changes
+  }, [course, courseId, currentLessonIndex, videoDuration]); // Rerun only when lesson changes or videoDuration changes
 
   // --- Save progress periodically and on unmount ---
   useEffect(() => {
@@ -292,8 +292,8 @@ const CourseView = () => {
     setVideoDuration(duration);
   };
 
-  const handleSeek = (seconds) => {
-    //console.log(`[CourseView] Seek operation completed at ${seconds}`);
+  const handleSeek = (_seconds) => {
+    //console.log(`[CourseView] Seek operation completed at ${_seconds}`);
     setIsSeeking(false); // Reset seeking flag after seek completes
     setIsLoading(false); // Seeking is done, stop loading indicator
     // Save progress after seeking to capture the new position

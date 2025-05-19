@@ -13,8 +13,7 @@ const Dashboard = () => {
     enrolledCourses, 
     coursesLoading, 
     coursesError, 
-    fetchEnrolledCourses,
-    updateCourseProgress
+    fetchEnrolledCourses
   } = useContext(UserContext);
   
   const [stats, setStats] = useState({
