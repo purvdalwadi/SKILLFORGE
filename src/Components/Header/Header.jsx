@@ -46,7 +46,7 @@ function Navbar() {
         <div className="nav-content">
           <div className="logo-group">
             {darkMode ? (
-              <div className="logo-circle-dark">SF</div>
+              <div className="logo-circle-dark font-bold">SF</div>
             ) : (
               <div className="logo-circle">SF</div>
             )}
