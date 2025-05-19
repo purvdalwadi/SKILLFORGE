@@ -6,9 +6,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "npx --yes vite build",
     "preview": "vite preview",
-    "build:frontend": "vite build"
+    "build:frontend": "npx --yes vite build"
   },
     "engines": {
       "node": ">=18.0.0",
