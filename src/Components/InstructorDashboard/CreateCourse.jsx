@@ -126,7 +126,7 @@ export default function CreateCourse() {
       //console.log('Submitting course data:', courseData);
       
       // Send the data to the backend
-      const response = await createCourse(courseData);
+      await createCourse(courseData);
       //console.log('Course created successfully:', response);
       
       // Show success message
@@ -340,4 +340,4 @@ export default function CreateCourse() {
       </form>
     </div>
   );
-} 
+}

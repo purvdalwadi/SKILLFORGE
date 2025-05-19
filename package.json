@@ -6,7 +6,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "npx vite build",
+    "build": "sh -c 'npx vite build'",
+
     "preview": "vite preview",
     "build:frontend": "vite build"
 
