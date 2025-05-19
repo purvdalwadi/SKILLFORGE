@@ -67,7 +67,7 @@ body.dark-mode .section-header h2 {
     border-radius: 12px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     padding: 2rem 2rem 3rem 2rem;
-    margin-top: 4rem;
+    margin-top: 0.2rem;
 }
 
 body.dark-mode .dashboard {

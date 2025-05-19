@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useContext, useRef } from 'react';
+import { GuestEnrollModal } from './GuestEnrollModal';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { getCourseById, enrollInCourse } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
@@ -107,10 +108,16 @@ const CoursePreview = () => {
   // Use a ref to track if enrollment is in progress to prevent double-clicks
   const enrollingRef = useRef(false);
 
-  const handleEnroll = async () => {
+  const [showGuestModal, setShowGuestModal] = useState(false);
+
+const handleEnroll = async () => {
+  if (!user || user.role === 'guest') {
+    setShowGuestModal(true);
+    return;
+  }
     // Prevent double-clicks by checking the ref
     if (enrollingRef.current) {
-      console.log('Enrollment already in progress, ignoring click');
+
       return;
     }
 
@@ -121,9 +128,11 @@ const CoursePreview = () => {
     }
     
     // Start enrollment process and set the ref
+    // Clear all error states and show loading modal
+    setEnrollError(null);
+    setShowEnrollModal(true);
     enrollingRef.current = true;
     setEnrolling(true);
-    setEnrollError(null); // Clear enrollment errors
     
     try {
       const response = await enrollInCourse(courseId);
@@ -140,9 +149,11 @@ const CoursePreview = () => {
         }
         
         // Redirect to dedicated success page
-        console.log('Enrollment successful, redirecting to success page');
-        window.location.href = '/enrollment-success';
-        return; // Early return to avoid resetting enrolling state
+      
+        // Clear modal state before redirect
+        setShowEnrollModal(false);
+        navigate('/enrollment-success', { replace: true });
+        return;
       } else {
         // Show error
         setEnrollError(response?.message || 'Failed to enroll in course. Please try again.');
@@ -154,8 +165,8 @@ const CoursePreview = () => {
       if (err.response && err.response.status === 400 && 
           err.response.data && err.response.data.message === 'Already enrolled in this course') {
         // Handle 'already enrolled' case - redirect to dashboard
-        console.log('User already enrolled, redirecting to dashboard');
-        window.location.href = '/dashboard';
+     //   //console.log('User already enrolled, redirecting to dashboard');
+        navigate('/dashboard', { replace: true });
         return; // Early return to avoid resetting enrolling state
       }
       
@@ -200,9 +211,9 @@ const CoursePreview = () => {
           <div className="course-header-content">
             <h1>{course.title}</h1>
             <div className="course-meta">
-              <span className="course-category">{course.category}</span>
-              <span className="course-level">{course.level}</span>
-              <span className="course-duration">{course.duration} minutes</span>
+              <div className="course-category">{course.category}</div>
+              <div className="course-level">{course.level}</div>
+             
             </div>
             <div className="course-instructor">
               <span>
@@ -210,7 +221,8 @@ const CoursePreview = () => {
               </span>
             </div>
           </div>
-        </div>
+      {showGuestModal && <GuestEnrollModal onClose={() => setShowGuestModal(false)} />}
+    </div>
       </div>
       
       {/* Course Preview Video */}
@@ -266,12 +278,7 @@ const CoursePreview = () => {
         >
           Instructor
         </button>
-        <button 
-          className={`nav-item ${activeTab === 'reviews' ? 'active' : ''}`}
-          onClick={() => setActiveTab('reviews')}
-        >
-          Reviews
-        </button>
+        
       </div>
       
       {/* Course Content */}
@@ -281,61 +288,7 @@ const CoursePreview = () => {
             <h2>About this course</h2>
             <p>{course.description}</p>
             
-            {/* Course highlights */}
-            <div className="course-highlights">
-              <div className="highlight">
-                <div className="highlight-icon">
-                  <i className="fas fa-film"></i>
-                </div>
-                <div className="highlight-content">
-                  <h3>{course.lessons ? course.lessons.length : 0} Lessons</h3>
-                  <p>Comprehensive curriculum</p>
-                </div>
-              </div>
-              
-              <div className="highlight">
-                <div className="highlight-icon">
-                  <i className="fas fa-clock"></i>
-                </div>
-                <div className="highlight-content">
-                  <h3>{Math.ceil(course.duration / 60)} Hours</h3>
-                  <p>Total course duration</p>
-                </div>
-              </div>
-              
-              <div className="highlight">
-                <div className="highlight-icon">
-                  <i className="fas fa-medal"></i>
-                </div>
-                <div className="highlight-content">
-                  <h3>Certificate</h3>
-                  <p>Earn a completion certificate</p>
-                </div>
-              </div>
-              
-              <div className="highlight">
-                <div className="highlight-icon">
-                  <i className="fas fa-laptop"></i>
-                </div>
-                <div className="highlight-content">
-                  <h3>Full Access</h3>
-                  <p>Access on mobile and desktop</p>
-                </div>
-              </div>
-            </div>
-            
-            {/* Who this course is for */}
-            <div className="course-audience">
-              <h2>Who this course is for</h2>
-              <ul>
-                <li>Students interested in {course.category}</li>
-                <li>{course.level === 'beginner' ? 'No prior experience needed' : 
-                     course.level === 'intermediate' ? 'Some basic knowledge required' : 
-                     'Advanced understanding of the subject recommended'}</li>
-                <li>Professionals looking to enhance their skills</li>
-                <li>Enthusiasts passionate about learning new concepts</li>
-              </ul>
-            </div>
+         
           </div>
         )}
         
@@ -397,115 +350,18 @@ const CoursePreview = () => {
           </div>
         )}
         
-        {activeTab === 'reviews' && (
-          <div className="course-reviews">
-            <h2>Student Reviews</h2>
+        
+                
+                
+                
+                
+                
+        
             
-            <div className="reviews-summary">
-              <div className="rating-summary">
-                <div className="average-rating">4.7</div>
-                <div className="star-rating">
-                  <i className="fas fa-star"></i>
-                  <i className="fas fa-star"></i>
-                  <i className="fas fa-star"></i>
-                  <i className="fas fa-star"></i>
-                  <i className="fas fa-star-half-alt"></i>
-                </div>
-                <div className="total-reviews">Based on 124 reviews</div>
-              </div>
+         
               
-              <div className="rating-breakdown">
-                <div className="rating-bar">
-                  <span className="rating-level">5 stars</span>
-                  <div className="progress-bar">
-                    <div className="progress" style={{ width: '75%' }}></div>
-                  </div>
-                  <span className="rating-percent">75%</span>
-                </div>
-                
-                <div className="rating-bar">
-                  <span className="rating-level">4 stars</span>
-                  <div className="progress-bar">
-                    <div className="progress" style={{ width: '20%' }}></div>
-                  </div>
-                  <span className="rating-percent">20%</span>
-                </div>
-                
-                <div className="rating-bar">
-                  <span className="rating-level">3 stars</span>
-                  <div className="progress-bar">
-                    <div className="progress" style={{ width: '5%' }}></div>
-                  </div>
-                  <span className="rating-percent">5%</span>
-                </div>
-                
-                <div className="rating-bar">
-                  <span className="rating-level">2 stars</span>
-                  <div className="progress-bar">
-                    <div className="progress" style={{ width: '0%' }}></div>
-                  </div>
-                  <span className="rating-percent">0%</span>
-                </div>
-                
-                <div className="rating-bar">
-                  <span className="rating-level">1 star</span>
-                  <div className="progress-bar">
-                    <div className="progress" style={{ width: '0%' }}></div>
-                  </div>
-                  <span className="rating-percent">0%</span>
-                </div>
-              </div>
-            </div>
-            
-            {/* Sample reviews */}
-            <div className="reviews-list">
-              <div className="review-item">
-                <div className="reviewer-info">
-                  <div className="reviewer-avatar">JD</div>
-                  <div className="reviewer-name">John Doe</div>
-                </div>
-                <div className="review-content">
-                  <div className="review-rating">
-                    <i className="fas fa-star"></i>
-                    <i className="fas fa-star"></i>
-                    <i className="fas fa-star"></i>
-                    <i className="fas fa-star"></i>
-                    <i className="fas fa-star"></i>
-                  </div>
-                  <div className="review-date">2 months ago</div>
-                  <p className="review-text">
-                    Excellent course! The instructor explains complex concepts in a very understandable way.
-                    I learned a lot and would highly recommend this to anyone interested in {course.category}.
-                  </p>
-                </div>
-              </div>
-              
-              <div className="review-item">
-                <div className="reviewer-info">
-                  <div className="reviewer-avatar">JS</div>
-                  <div className="reviewer-name">Jane Smith</div>
-                </div>
-                <div className="review-content">
-                  <div className="review-rating">
-                    <i className="fas fa-star"></i>
-                    <i className="fas fa-star"></i>
-                    <i className="fas fa-star"></i>
-                    <i className="fas fa-star"></i>
-                    <i className="far fa-star"></i>
-                  </div>
-                  <div className="review-date">1 month ago</div>
-                  <p className="review-text">
-                    Very detailed and well-paced course. The practical exercises really helped me apply what I learned.
-                    Would have liked a bit more depth in some sections, but overall great experience.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-      
-      {/* Enrollment CTA */}
+    </div>  
+    
       <div className="enrollment-cta">
         <div className="cta-content">
           <h2>Ready to start learning?</h2>

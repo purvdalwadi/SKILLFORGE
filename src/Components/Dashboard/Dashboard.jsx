@@ -1,12 +1,13 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { useTheme } from '../../context/ThemeContext';
 import { UserContext } from '../../context/UserContext';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import Spinner from '../common/Spinner';
 import './Dashboard.css';
 
 const Dashboard = () => {
   const { darkMode } = useTheme();
+  const location = useLocation();
   const { 
     user, 
     enrolledCourses, 
@@ -22,23 +23,20 @@ const Dashboard = () => {
     completed: 0
   });
 
-  // Fetch courses immediately when component mounts or user changes
+  // Fetch courses when component mounts, user changes, or after new enrollment
   useEffect(() => {
     if (user) {
-      console.log('Dashboard mounted with user, fetching enrolled courses');
-      // Force an immediate fetch with a small delay to ensure token is set
-      setTimeout(() => {
+      // Check if we're coming from a new enrollment
+      const isNewEnrollment = location.state?.refreshedTS;
+      
+      // If it's a new enrollment or initial mount, fetch immediately
+      if (isNewEnrollment || !enrolledCourses.length) {
         fetchEnrolledCourses();
-      }, 100);
+      }
     }
-  }, [user, fetchEnrolledCourses]);
+  }, [user, location.state?.refreshedTS, fetchEnrolledCourses, enrolledCourses.length]);
   
-  // Force refresh when enrolledCourses changes
-  useEffect(() => {
-    console.log(`Dashboard detected ${enrolledCourses?.length || 0} enrolled courses`);
-  }, [enrolledCourses]);
 
-  // Calculate stats when enrolled courses change
   useEffect(() => {
     if (enrolledCourses?.length) {
       const completed = enrolledCourses.filter(course => course.progress === 100).length;

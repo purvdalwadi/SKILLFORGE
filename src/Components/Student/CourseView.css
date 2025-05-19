@@ -913,6 +913,8 @@
   height: calc(100vh - 60px); /* Adjust based on your header height */
   background-color: #f4f7f6; /* Light background for the whole view */
   overflow: hidden; /* Prevent scrolling on the main container */
+
+
 }
 
 /* Back to Dashboard Button Styling */
@@ -1101,6 +1103,17 @@
   color: #0056b3;
 }
 
+body.dark-mode .lesson-item.active .lesson-item-title {
+  color: #70b1f6;
+}
+body.dark-mode .lesson-item-title {
+  color: #ffffffd8;
+}
+
+body.dark-mode .lesson-navigation-section {
+  border-left: 1px solid #e0e0e0;
+  background-color: #24262a;
+}
 .navigation-buttons {
   display: flex;
   justify-content: space-between;
@@ -1139,6 +1152,49 @@
 .next-button:hover:not(:disabled) {
   background-color: #0056b3;
 }
+
+body.dark-mode .video-player-section {
+  flex-grow: 1;
+  display: flex
+;
+  flex-direction: column;
+  padding: 20px;
+  overflow-y: auto;
+  background-color: #24262a;
+  border-left: 1px solid #e0e0e0;
+}
+
+body.dark-mode .course-view-container {
+  display: flex
+;
+  flex-direction: column;
+  height: calc(100vh - 60px);
+  background-color: #24262a;
+  overflow: hidden;
+
+  box-shadow: 0 2px 30px rgb(124 119 119 / 41%);
+  border-radius: 0.5rem;
+}
+
+body.dark-mode .back-to-dashboard-container , body.dark-mode .course-view-main-content , body.dark-mode .lesson-navigation-section h3,body.dark-mode .navigation-buttons {
+  background-color: #24262a;
+}
+
+
+body.dark-mode .lesson-description {
+  margin-top: 20px;
+  padding: 15px;
+  background-color: #24262a;
+  border: 1px solid #dee2e6;
+  border-radius: 5px;
+}
+
+
+
+
+
+
+
 
 /* Responsive adjustments if needed */
 @media (max-width: 768px) {

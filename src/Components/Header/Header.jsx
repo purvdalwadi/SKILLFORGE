@@ -15,6 +15,11 @@ function Navbar() {
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [modalStage, setModalStage] = useState('loading');
   const instructor = isInstructor() || user?.role === 'instructor';
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
 
   const handleLogout = () => {
     logout();
@@ -47,7 +52,7 @@ function Navbar() {
             )}
             <span className='logo-text'>SKILLFORGE</span>
           </div>
-          <div className="nav-links">
+          <div className="nav-links desktop-nav-links">
             <NavLink to="/" className={({isActive}) => isActive ? "nav-link active" : "nav-link"}>Home</NavLink>
             {!instructor && (
               <NavLink to="/courses" className={({isActive}) => isActive ? "nav-link active" : "nav-link"}>Courses</NavLink>
@@ -63,7 +68,8 @@ function Navbar() {
             <NavLink to="/about" className={({isActive}) => isActive ? "nav-link active" : "nav-link"}>About</NavLink>
           </div>
           <div className="nav-actions">
-            <div className="nav-actions-row">
+            {/* Desktop actions: toggle and login/logout */}
+            <div className="nav-actions-row desktop-only-actions">
               <div className={`toggle-switch${darkMode ? ' toggled' : ''}`} onClick={() => setDarkMode((prev) => !prev)} title={darkMode ? 'Switch to light mode' : 'Switch to dark mode'} aria-label="Toggle dark mode">
                 <div className="toggle-track">
                   <div className="toggle-thumb"></div>
@@ -76,8 +82,54 @@ function Navbar() {
                 <Link to="/login"><button className="login-btn">Login</button></Link>
               )}
             </div>
+
+            {/* Mobile controls: toggle and hamburger icon */}
+            <div className="mobile-nav-bar-controls">
+              <div 
+                className={`toggle-switch mobile-header-toggle${darkMode ? ' toggled' : ''}`} 
+                onClick={() => setDarkMode((prev) => !prev)} 
+                title={darkMode ? 'Switch to light mode' : 'Switch to dark mode'} 
+                aria-label="Toggle dark mode"
+              >
+                <div className="toggle-track">
+                  <div className="toggle-thumb"></div>
+                </div>
+                {/* No label for this toggle to save space in the header bar */}
+              </div>
+              <button className={`hamburger-menu${isMobileMenuOpen ? ' open' : ''}`} onClick={toggleMobileMenu} aria-label="Toggle navigation menu">
+                <span className="hamburger-bar"></span>
+                <span className="hamburger-bar"></span>
+                <span className="hamburger-bar"></span>
+              </button>
+            </div>
           </div>
         </div>
+        {/* Always render mobile-nav-links for CSS transitions to work, control visibility with 'open' class */}
+        <div className={`mobile-nav-links${darkMode ? ' dark-mode' : ''}${isMobileMenuOpen ? ' open' : ''}`}>
+            <NavLink to="/" className={({isActive}) => isActive ? "nav-link active" : "nav-link"} onClick={toggleMobileMenu}>Home</NavLink>
+            {!instructor && (
+              <NavLink to="/courses" className={({isActive}) => isActive ? "nav-link active" : "nav-link"} onClick={toggleMobileMenu}>Courses</NavLink>
+            )}
+            {user && (
+              <NavLink
+                to={instructor ? "/instructor-dashboard" : "/dashboard"}
+                className={({isActive}) => isActive ? "nav-link active" : "nav-link"}
+                onClick={toggleMobileMenu}
+              >
+                Dashboard
+              </NavLink>
+            )}
+            <NavLink to="/about" className={({isActive}) => isActive ? "nav-link active" : "nav-link"} onClick={toggleMobileMenu}>About</NavLink>
+            {/* Mobile: Dark mode toggle and Login/Logout button moved inside mobile menu */}
+            <div className="mobile-actions-wrapper">
+              {/* Dark mode toggle removed, now in header bar for mobile view */}
+              {user ? (
+                  <button className="login-btn mobile-logout-btn" onClick={() => { handleLogout(); toggleMobileMenu(); }}>Logout</button>
+                ) : (
+                  <Link to="/login" onClick={toggleMobileMenu}><button className="login-btn">Login</button></Link>
+              )}
+            </div>
+          </div>
       </nav>
       {/* Logout Modal */}
       {showLogoutModal && (

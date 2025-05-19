@@ -159,6 +159,7 @@ body.dark-mode .legal-links a:hover {
     display: flex;
     align-items: center;
     gap: 0.75rem;
+    margin-left: -1.875rem; /* Align text with title, icon hangs left */
   }
   
   .icon {

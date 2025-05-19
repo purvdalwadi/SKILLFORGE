@@ -27,14 +27,14 @@ export default function InstructorDashboard() {
         
         // Calculate dashboard statistics
         if (instructorCourses.length > 0) {
-          console.log('Instructor courses with enrollment data:', instructorCourses);
+          //console.log('Instructor courses with enrollment data:', instructorCourses);
           
           // Calculate total students using the new enrollmentStats field
           const totalStudents = instructorCourses.reduce(
             (total, course) => total + (course.enrollmentStats?.count || 0), 0
           );
           
-          console.log('Total students enrolled across all courses:', totalStudents);
+          //console.log('Total students enrolled across all courses:', totalStudents);
           
           const totalLessons = instructorCourses.reduce(
             (total, course) => total + (course.lessons?.length || 0), 0
@@ -69,15 +69,10 @@ export default function InstructorDashboard() {
     const isInstructorUser = user?.role === 'instructor' || storedRole === 'instructor';
     
     if (user && isInstructorUser) {
-      console.log('Fetching instructor courses for', user.name, 'with role:', user.role);
+      //console.log('Fetching instructor courses for', user.name, 'with role:', user.role);
       fetchCourses();
     } else {
-      console.log('Not fetching instructor courses:', { 
-        userExists: !!user, 
-        userRole: user?.role,
-        storedRole,
-        isInstructorUser 
-      });
+      
       setIsLoading(false);
     }
   }, [user]);

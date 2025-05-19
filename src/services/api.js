@@ -15,7 +15,11 @@ export const getUserProfile = async () => {
 };
 
 export const loginUser = async (credentials) => {
-  const response = await api.post('/auth/login', credentials);
+  // Ensure credentials are properly formatted and not nested
+  const response = await api.post('/auth/login', {
+    email: credentials.email,
+    password: credentials.password
+  });
   return response.data;
 };
 

@@ -35,12 +35,9 @@ const Login = () => {
     setIsLoading(true);
     
     try {
-      const result = await login({
-        email: formData.email,
-        password: formData.password
-      });
+      const result = await login(formData.email, formData.password);
       const path = result.redirectPath || '/dashboard';
-      console.log(`Redirecting user to ${path} based on role: ${result.user?.role}`);
+      //console.log(`Redirecting user to ${path} based on role: ${result.user?.role}`);
       setRedirectPath(path);
       setShowSuccessModal(true);
     } catch (err) {
@@ -67,7 +64,7 @@ const Login = () => {
     <>
       <div className="min-h-screen flex login-page-container">
         {/* Left side - Login Form */}
-        <div className="flex-1 flex items-center justify-center p-8">
+        <div className="flex-1 flex items-center justify-center p-8 leftside">
           <div className="w-full max-w-md space-y-8">
             <div className="space-y-3">
               <h1 className="text-4xl font-bold">Login</h1>
@@ -179,7 +176,7 @@ const Login = () => {
             {/* Text at the top */}
             <div className="text-center mb-8 z-10">
               <h2 className="text-4xl font-bold mb-4">Welcome</h2>
-              <p className="text-xl text-indigo-100">to Student Portal</p>
+             
             </div>
             
             {/* Image in the middle - smaller size */}

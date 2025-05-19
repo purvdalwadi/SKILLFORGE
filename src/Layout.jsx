@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
 import Footer from './Components/Footer/Footer';
@@ -9,16 +9,18 @@ const Layout = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout, isInstructor } = useAuth();
-  // Also check localStorage directly for role as a backup
-  const storedRole = localStorage.getItem('userRole');
-  const hasInstructorRole = isInstructor() || storedRole === 'instructor';
+  const hasInstructorRole = isInstructor(); // Relies on AuthContext.isInstructor which checks user state and localStorage
   
-  // Log role information for debugging
-  console.log('Layout role check:', { 
-    userRole: user?.role,
-    storedRole,
-    hasInstructorRole
-  });
+
+
+  // Redirect to appropriate dashboard based on role
+  useEffect(() => {
+    // Only redirect if user is logged in and on the dashboard page
+    if (user && location.pathname === '/dashboard' && hasInstructorRole) {
+      //console.log('Redirecting instructor from student dashboard to instructor dashboard');
+      navigate('/instructor-dashboard');
+    }
+  }, [user, location.pathname, hasInstructorRole, navigate]);
 
   const isActive = (path) => {
     return location.pathname === path;

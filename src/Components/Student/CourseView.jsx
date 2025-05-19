@@ -41,20 +41,20 @@ const CourseView = () => {
 
   // --- Function to save progress --- 
   const handleSaveProgress = useCallback(async (isEnding = false) => {
-    console.log(`[CourseView] handleSaveProgress called. isEnding: ${isEnding}`);
+    //console.log(`[CourseView] handleSaveProgress called. isEnding: ${isEnding}`);
 
     // --- STRONGER CHECKS ---
     if (!course || !course.lessons || !Array.isArray(course.lessons) || course.lessons.length === 0) {
-      console.log("[CourseView] handleSaveProgress: Aborted - Course/Lessons data not ready in state.");
+      //console.log("[CourseView] handleSaveProgress: Aborted - Course/Lessons data not ready in state.");
       return;
     }
     if (currentLessonIndex < 0 || currentLessonIndex >= course.lessons.length) {
-      console.log(`[CourseView] handleSaveProgress: Aborted - Index ${currentLessonIndex} out of bounds (Lessons: ${course.lessons.length}).`);
+      //console.log(`[CourseView] handleSaveProgress: Aborted - Index ${currentLessonIndex} out of bounds (Lessons: ${course.lessons.length}).`);
       return;
     }
     const lesson = course.lessons[currentLessonIndex];
     if (!lesson || !lesson._id) {
-      console.log(`[CourseView] handleSaveProgress: Aborted - Lesson at index ${currentLessonIndex} missing or has no _id. Lesson:`, lesson);
+      //console.log(`[CourseView] handleSaveProgress: Aborted - Lesson at index ${currentLessonIndex} missing or has no _id. Lesson:`, lesson);
       return;
     }
     const lessonId = lesson._id;
@@ -70,14 +70,14 @@ const CourseView = () => {
       const lastKnownTime = playedSeconds; // Use state as fallback
       if (lastKnownTime > 0.1) {
           localStorage.setItem(key, lastKnownTime.toString());
-          console.log(`[CourseView] handleSaveProgress: Saved ${lastKnownTime} to localStorage (fallback due to invalid player ref).`);
+          //console.log(`[CourseView] handleSaveProgress: Saved ${lastKnownTime} to localStorage (fallback due to invalid player ref).`);
       }
       return;
     }
 
     // Prevent saving while seeking
     if (isSeeking) {
-        console.log("[CourseView] handleSaveProgress: Aborted - Currently seeking.");
+        //console.log("[CourseView] handleSaveProgress: Aborted - Currently seeking.");
         return;
     }
 
@@ -89,24 +89,24 @@ const CourseView = () => {
         // Use duration if ending and it's valid
         if (isEnding && duration > 0) {
             currentTime = duration;
-            console.log(`[CourseView] handleSaveProgress: Using duration ${duration} as current time because isEnding=true.`);
+            //console.log(`[CourseView] handleSaveProgress: Using duration ${duration} as current time because isEnding=true.`);
         }
     } catch (e) {
         console.error("[CourseView] Error getting time from player:", e);
         // Fallback to state if player methods fail
         currentTime = playedSeconds;
-        console.log(`[CourseView] handleSaveProgress: Using state ${currentTime} as fallback due to player error.`);
+        //console.log(`[CourseView] handleSaveProgress: Using state ${currentTime} as fallback due to player error.`);
     }
 
     // Only save if time is meaningful
     if (currentTime > 0.1) {
         const key = `progress_${courseId}_${lessonId}`;
-        console.log(`[CourseView] handleSaveProgress: Saving time ${currentTime} for Lesson ID: ${lessonId}`);
+        //console.log(`[CourseView] handleSaveProgress: Saving time ${currentTime} for Lesson ID: ${lessonId}`);
         
         // Save to localStorage first (more reliable)
         try {
             localStorage.setItem(key, currentTime.toString());
-            console.log(`[CourseView] handleSaveProgress: Saved to localStorage.`);
+            //console.log(`[CourseView] handleSaveProgress: Saved to localStorage.`);
         } catch (storageError) {
             console.error('[CourseView] Error saving to localStorage:', storageError);
         }
@@ -114,20 +114,20 @@ const CourseView = () => {
         // Attempt backend save (allow failure)
         try {
             await saveLessonProgress(courseId, lessonId, currentTime);
-            console.log(`[CourseView] handleSaveProgress: Backend save successful.`);
+            //console.log(`[CourseView] handleSaveProgress: Backend save successful.`);
         } catch (err) {
             console.error('[CourseView] Error saving progress to backend (will rely on localStorage):', err);
             // No need to re-throw, localStorage is the primary source for resume now
         }
     } else {
-        console.log("[CourseView] handleSaveProgress: Skipped save - Time is not significant.");
+        //console.log("[CourseView] handleSaveProgress: Skipped save - Time is not significant.");
     }
 
   }, [course, courseId, currentLessonIndex, playedSeconds, isSeeking]); // Added playedSeconds and isSeeking
 
   // --- Initial data loading (Keep as is) ---
   useEffect(() => {
-    console.log("[CourseView] Initial load effect running...");
+    //console.log("[CourseView] Initial load effect running...");
     const loadCourse = async () => {
       try {
         setLoading(true);
@@ -158,14 +158,14 @@ const CourseView = () => {
 
     const lessonId = course.lessons[currentLessonIndex]?._id;
     if (!lessonId) {
-      console.log("[CourseView] Seek aborted: Lesson ID missing for current index.");
+      //console.log("[CourseView] Seek aborted: Lesson ID missing for current index.");
       return; 
     }
 
     let isMounted = true; 
 
     const fetchLastWatched = async () => {
-      console.log(`[CourseView] Attempting to fetch progress for Lesson ID: ${lessonId}`);
+      //console.log(`[CourseView] Attempting to fetch progress for Lesson ID: ${lessonId}`);
       let lastWatchedSecond = 0;
       const key = `progress_${courseId}_${lessonId}`;
 
@@ -185,7 +185,7 @@ const CourseView = () => {
 
         if (isMounted && backendProgress?.lastWatchedSecond) {
           lastWatchedSecond = backendProgress.lastWatchedSecond;
-          console.log(`[CourseView] Fetched from backend: ${lastWatchedSecond}`);
+          //console.log(`[CourseView] Fetched from backend: ${lastWatchedSecond}`);
           // Update localStorage with backend value if newer/different?
           // localStorage.setItem(key, lastWatchedSecond.toString()); 
         } else {
@@ -197,12 +197,12 @@ const CourseView = () => {
         console.warn('[CourseView] Backend fetch failed or no progress found, trying localStorage:', e.message);
         lastWatchedSecond = parseFloat(localStorage.getItem(key)) || 0;
         if (isMounted) {
-            console.log(`[CourseView] Fetched from localStorage: ${lastWatchedSecond}`);
+            //console.log(`[CourseView] Fetched from localStorage: ${lastWatchedSecond}`);
         }
       }
 
       if (isMounted) {
-        console.log(`[CourseView] Setting playedSeconds state to: ${lastWatchedSecond}`);
+        //console.log(`[CourseView] Setting playedSeconds state to: ${lastWatchedSecond}`);
         setPlayedSeconds(lastWatchedSecond); // Store the time to seek to
         // Let onReady handle seeking and loading state
       }
@@ -230,7 +230,7 @@ const CourseView = () => {
 
     // Cleanup function
     return () => {
-      console.log('[CourseView] Cleanup effect running - performing final save.');
+      //console.log('[CourseView] Cleanup effect running - performing final save.');
       clearInterval(saveIntervalRef.current); // Clear interval
       saveCurrentProgress(); // Perform one final save immediately before unmount
     };
@@ -238,11 +238,11 @@ const CourseView = () => {
 
   // --- Player Event Handlers ---
   const handleReady = useCallback(() => {
-    console.log('[CourseView] Player is ready.');
+    //console.log('[CourseView] Player is ready.');
     setPlayerReady(true);
     const player = playerRef.current;
     if (player && playedSeconds > 0.1) {
-        console.log(`[CourseView] handleReady: Attempting to seek to ${playedSeconds}`);
+        //console.log(`[CourseView] handleReady: Attempting to seek to ${playedSeconds}`);
         setIsSeeking(true); // Set seeking flag before seek
         try {
             player.seekTo(playedSeconds, 'seconds');
@@ -252,25 +252,25 @@ const CourseView = () => {
         }
         // Note: onSeek will handle resetting the flag and loading state
     } else {
-        console.log('[CourseView] handleReady: No significant time to seek to or player not available.');
+        //console.log('[CourseView] handleReady: No significant time to seek to or player not available.');
         setIsLoading(false); // If not seeking, loading is finished
     }
   }, [playedSeconds]);
 
   const handlePlay = () => {
-    console.log('[CourseView] Video playing.');
+    //console.log('[CourseView] Video playing.');
     setIsPlaying(true);
     setIsLoading(false); // Video is playing, so stop loading indicator
   };
 
   const handlePause = () => {
-    console.log('[CourseView] Video paused.');
+    //console.log('[CourseView] Video paused.');
     setIsPlaying(false);
     handleSaveProgress(); // Save immediately on pause
   };
 
   const handleEnded = () => {
-    console.log('[CourseView] Video ended.');
+    //console.log('[CourseView] Video ended.');
     setIsPlaying(false);
     handleSaveProgress(true); // Save final progress (duration)
     // Optionally move to next lesson
@@ -284,16 +284,16 @@ const CourseView = () => {
         setPlayedSeconds(state.playedSeconds);
     }
     // We could save here periodically, but the interval timer handles that
-    // console.log('[CourseView] Progress:', state.playedSeconds);
+    // //console.log('[CourseView] Progress:', state.playedSeconds);
   };
 
   const handleDuration = (duration) => {
-    console.log('[CourseView] Video duration:', duration);
+    //console.log('[CourseView] Video duration:', duration);
     setVideoDuration(duration);
   };
 
   const handleSeek = (seconds) => {
-    console.log(`[CourseView] Seek operation completed at ${seconds}`);
+    //console.log(`[CourseView] Seek operation completed at ${seconds}`);
     setIsSeeking(false); // Reset seeking flag after seek completes
     setIsLoading(false); // Seeking is done, stop loading indicator
     // Save progress after seeking to capture the new position
