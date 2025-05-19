@@ -8,7 +8,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "build:frontend": "vite build",
+    "build:frontend": "vite build"
 
   },
     "engines": {
