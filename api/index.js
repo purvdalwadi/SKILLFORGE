@@ -128,7 +128,7 @@ const signupHandler = wrap(async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
     const user = new User({ name, email, password: hashedPassword, role: role || 'student' });
     await user.save();
-    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '24h' });
+    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '24h', algorithm: 'HS256' });
     res.status(201).json({
       token,
       user: { id: user._id, name: user.name, email: user.email, role: user.role }
@@ -156,7 +156,7 @@ app.post('/api/auth/login', wrap(async (req, res) => {
     if (!isMatch) {
       return res.status(400).json({ message: 'Invalid credentials' });
     }
-    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '24h' });
+    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '24h', algorithm: 'HS256' });
     res.status(200).json({
       token,
       user: { id: user._id, name: user.name, email: user.email, role: user.role }
@@ -181,7 +181,7 @@ const verifyToken = wrap(async (req, res, next) => {
 
     
     try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      const decoded = jwt.verify(token, process.env.JWT_SECRET, { algorithms: ['HS256'] });
       //console.log('[Auth] Token verified, userId:', decoded.userId);
       
       const user = await User.findById(decoded.userId).select('-password');
@@ -219,7 +219,7 @@ app.get('/api/user/profile', wrap(async (req, res) => {
     //console.log('[Profile] Verifying token');
     let userId;
     try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      const decoded = jwt.verify(token, process.env.JWT_SECRET, { algorithms: ['HS256'] });
       userId = decoded.userId;
       //console.log('[Profile] Token verified, userId:', userId);
     } catch (jwtError) {
@@ -273,7 +273,7 @@ app.post(['/api/courses', '/courses'], wrap(async (req, res) => {
     if (!token) return res.status(401).json({ message: 'No token provided' });
     let decoded;
     try {
-      decoded = jwt.verify(token, process.env.JWT_SECRET);
+      decoded = jwt.verify(token, process.env.JWT_SECRET, { algorithms: ['HS256'] });
     } catch (jwtError) {
       return res.status(401).json({ message: 'Invalid or expired token' });
     }
@@ -309,7 +309,7 @@ app.get(['/api/courses/enrolled', '/courses/enrolled'], wrap(async (req, res) =>
   
   try {
     // Verify token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET, { algorithms: ['HS256'] });
     //console.log('[Enrolled] Token verified, userId:', decoded.userId);
     
     // Ensure DB connection
@@ -350,7 +350,7 @@ app.get(['/api/courses/instructor', '/courses/instructor'], wrap(async (req, res
   
   try {
     // Verify token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET, { algorithms: ['HS256'] });
     //console.log('[Instructor] Token verified, userId:', decoded.userId);
     
     // Ensure DB connection
@@ -435,7 +435,7 @@ app.post(['/api/courses/:id/enroll', '/courses/:id/enroll'], wrap(async (req, re
   
   try {
     // Verify token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET, { algorithms: ['HS256'] });
     //console.log('[Enroll] Token verified, userId:', decoded.userId);
     
     // Ensure DB connection
@@ -511,7 +511,7 @@ app.put(['/api/courses/:id', '/courses/:id'], wrap(async (req, res) => {
   
   try {
     // Verify token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET, { algorithms: ['HS256'] });
     //console.log('[CourseUpdate] Token verified, userId:', decoded.userId);
     
     // Ensure DB connection
@@ -574,7 +574,7 @@ app.put(['/api/courses/:id/progress', '/courses/:id/progress'], verifyToken, wra
   
   try {
     // Verify token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET, { algorithms: ['HS256'] });
     //console.log('[Progress] Token verified, userId:', decoded.userId);
     
     // Ensure DB connection
@@ -755,7 +755,7 @@ app.get(
   passport.authenticate('google', { session: false, failureRedirect: `${FRONTEND_URL}/login?error=oauth` }),
   (req, res) => {
     // Issue JWT
-    const token = jwt.sign({ userId: req.user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+    const token = jwt.sign({ userId: req.user._id }, process.env.JWT_SECRET, { expiresIn: '7d', algorithm: 'HS256' });
     // Determine frontend redirect based on role
     const redirectPath = req.user.role === 'instructor' ? '/instructor-dashboard' : '/dashboard';
     // Redirect to OAuth success handler with token and path
