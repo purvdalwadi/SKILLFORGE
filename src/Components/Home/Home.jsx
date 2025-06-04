@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import './Home.css';
 import { Link } from 'react-router-dom';
 import { getStatsSummary } from '../../services/api';
-import NumberFlow from '@number-flow/react';
+import NumberFlow,{ continuous } from '@number-flow/react';
 export default function Home() {
     const [stats, setStats] = useState({ students: 0, courses: 0, instructors: 0 });
     useEffect(() => {
@@ -33,15 +33,15 @@ export default function Home() {
                 </div>
                 <div className="stats">
                     <div className="stat-item">
-                        <div className="stat-number"><NumberFlow value={stats.students} ></NumberFlow></div>
+                        <div className="stat-number"><NumberFlow value={stats.students} plugins={[continuous]}></NumberFlow></div>
                         <div className="stat-label">Active Learners</div>
                     </div>
                     <div className="stat-item">
-                        <div className="stat-number"><NumberFlow value={stats.courses} ></NumberFlow></div>
+                        <div className="stat-number"><NumberFlow value={stats.courses}  plugins={[continuous]}></NumberFlow></div>
                         <div className="stat-label">Courses Available</div>
                     </div>
                     <div className="stat-item">
-                        <div className="stat-number"><NumberFlow value={stats.instructors} ></NumberFlow></div>
+                        <div className="stat-number"><NumberFlow value={stats.instructors}  plugins={[continuous]}></NumberFlow></div>
                         <div className="stat-label">Expert Instructors</div>
                     </div>
                 </div>
