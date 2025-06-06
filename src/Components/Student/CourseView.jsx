@@ -38,6 +38,9 @@ const CourseView = () => {
   const [isLoading, setIsLoading] = useState(true); // General loading state (includes video buffering)
   const [videoDuration, setVideoDuration] = useState(0); // Duration of the video
   const [isSeeking, setIsSeeking] = useState(false); // Flag to prevent saving during seek
+  const [lessonProgress, setLessonProgress] = useState(0); // Progress of current lesson
+  const [overallProgress, setOverallProgress] = useState(0); // Overall course progress
+  const [completedLessons, setCompletedLessons] = useState(new Set()); // Track completed lessons
 
   // --- Function to save progress --- 
   const handleSaveProgress = useCallback(async (isEnding = false) => {
@@ -111,19 +114,48 @@ const CourseView = () => {
             console.error('[CourseView] Error saving to localStorage:', storageError);
         }
 
-        // Attempt backend save (allow failure)
-        try {
-            await saveLessonProgress(courseId, lessonId, currentTime);
-            //console.log(`[CourseView] handleSaveProgress: Backend save successful.`);
-        } catch (err) {
-            console.error('[CourseView] Error saving progress to backend (will rely on localStorage):', err);
-            // No need to re-throw, localStorage is the primary source for resume now
+        // Attempt backend save with retry
+        let retryCount = 0;
+        const maxRetries = 3;
+        
+        while (retryCount < maxRetries) {
+            try {
+                const response = await saveLessonProgress(courseId, lessonId, currentTime);
+                console.log(`[CourseView] Backend save successful:`, response);
+                break; // Exit loop on success
+            } catch (err) {
+                console.error(`[CourseView] Error saving progress (attempt ${retryCount + 1}/${maxRetries}):`, err);
+                retryCount++;
+                if (retryCount === maxRetries) {
+                    console.error('[CourseView] Max retries reached, falling back to localStorage');
+                } else {
+                    await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1s before retry
+                }
+            }
         }
     } else {
         //console.log("[CourseView] handleSaveProgress: Skipped save - Time is not significant.");
     }
 
   }, [course, courseId, currentLessonIndex, playedSeconds, isSeeking]); // Added playedSeconds and isSeeking
+
+  // Initialize completed lessons from enrollment data
+  useEffect(() => {
+    if (enrollment?.lessonProgress) {
+      const completed = new Set(
+        enrollment.lessonProgress
+          .filter(lp => lp.completed)
+          .map(lp => lp.lessonId)
+      );
+      setCompletedLessons(completed);
+      
+      // Set initial overall progress
+      if (course?.lessons?.length) {
+        const progress = Math.round((completed.size / course.lessons.length) * 100);
+        setOverallProgress(progress);
+      }
+    }
+  }, [enrollment, course?.lessons?.length]); // Optimize dependency array
 
   // --- Initial data loading (Keep as is) ---
   useEffect(() => {
@@ -278,13 +310,26 @@ const CourseView = () => {
   };
 
   const handleProgress = (state) => {
-    // Update playedSeconds state based on player's current time
-    // This helps if the initial seek wasn't perfect or for fallback saves
-    if (!isSeeking) { // Don't update state while seeking
-        setPlayedSeconds(state.playedSeconds);
+    if (!isSeeking) {
+      setPlayedSeconds(state.playedSeconds);
+      // Calculate lesson progress percentage
+      if (videoDuration > 0) {
+        const progress = (state.playedSeconds / videoDuration) * 100;
+        setLessonProgress(progress);
+        
+        // Mark lesson as completed if progress is over 90%
+        if (progress >= 90 && course?.lessons?.[currentLessonIndex]?._id) {
+          setCompletedLessons(prev => new Set([...prev, course.lessons[currentLessonIndex]._id]));
+          
+          // Calculate overall course progress
+          if (course?.lessons?.length) {
+            const totalCompleted = completedLessons.size + (completedLessons.has(course.lessons[currentLessonIndex]._id) ? 0 : 1);
+            const newOverallProgress = (totalCompleted / course.lessons.length) * 100;
+            setOverallProgress(newOverallProgress);
+          }
+        }
+      }
     }
-    // We could save here periodically, but the interval timer handles that
-    // //console.log('[CourseView] Progress:', state.playedSeconds);
   };
 
   const handleDuration = (duration) => {
@@ -362,7 +407,7 @@ const CourseView = () => {
             {course.lessons.map((lesson, index) => (
               <li 
                 key={lesson._id || index} 
-                className={`lesson-item ${index === currentLessonIndex ? 'active' : ''}`}
+                className={`lesson-item ${index === currentLessonIndex ? 'active' : ''} ${completedLessons.has(lesson._id) ? 'completed' : ''}`}
                 onClick={() => {
                   handleSaveProgress(); // Save before switching
                   setCurrentLessonIndex(index);
@@ -372,7 +417,12 @@ const CourseView = () => {
                 }}
               >
                 <span className="lesson-index">{index + 1}</span>
-                <span className="lesson-item-title">{lesson.title}</span>
+                <span className="lesson-item-title">
+                  {lesson.title}
+                  {completedLessons.has(lesson._id) && (
+                    <span className="completion-tick">✓</span>
+                  )}
+                </span>
                 {/* Optional: Add duration display */} 
                 {/* <span className="lesson-duration">{lesson.duration} min</span> */} 
               </li>
@@ -399,6 +449,29 @@ const CourseView = () => {
         {/* Video Player Section (Moved to the right) */}
         <div className="video-player-section">
           <h2 className="lesson-title">{currentLesson?.title || 'Loading Lesson...'}</h2>
+          
+          {/* Progress Section */}
+          <div className="progress-section">
+            <div className="progress-bar">
+              <div 
+                className="progress-fill" 
+                style={{ width: `${Math.min(100, Math.max(0, lessonProgress))}%` }}
+              />
+            </div>
+            <div className="progress-text">
+              Lesson Progress: {Math.round(lessonProgress)}%
+            </div>
+            <div className="progress-bar">
+              <div 
+                className="progress-fill" 
+                style={{ width: `${Math.min(100, Math.max(0, overallProgress))}%` }}
+              />
+            </div>
+            <div className="progress-text">
+              Overall Progress: {Math.round(overallProgress)}%
+            </div>
+          </div>
+
           <div className="video-wrapper">
             {isLoading && <VideoLoader />} 
             {videoId ? (
