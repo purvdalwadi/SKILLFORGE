@@ -168,41 +168,19 @@ app.post('/api/auth/login', wrap(async (req, res) => {
 }));
 
 // Middleware to verify JWT token
-const verifyToken = wrap(async (req, res, next) => {
-  try {
-    // Log the full authorization header for debugging
-
-    
-    const token = req.headers.authorization?.split(' ')[1];
-    if (!token) {
-      return res.status(401).json({ message: 'No token provided' });
-    }
-    
-
-    
-    try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET, { algorithms: ['HS256'] });
-      //console.log('[Auth] Token verified, userId:', decoded.userId);
-      
-      const user = await User.findById(decoded.userId).select('-password');
-      
-      if (!user) {
-        //console.log('[Auth] User not found for id:', decoded.userId);
-        return res.status(404).json({ message: 'User not found' });
-      }
-      
-      //console.log('[Auth] User found:', user.email);
-      req.user = user;
-      next();
-    } catch (jwtError) {
-      console.error('[Auth] JWT verification failed:', jwtError.message);
-      return res.status(401).json({ message: 'Invalid or expired token' });
-    }
-  } catch (error) {
-    console.error('[Auth] Unexpected error:', error.message);
-    res.status(500).json({ message: 'Server error', error: error.message });
+const verifyToken = async (req, res, next) => {
+  const token = req.headers.authorization?.split(' ')[1];
+  if (!token) {
+    return res.status(401).json({ message: 'No token provided' });
   }
-});
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET, { algorithms: ['HS256'] });
+    req.user = decoded;
+    next();
+  } catch (error) {
+    return res.status(401).json({ message: 'Invalid or expired token' });
+  }
+};
 
 // User profile route
 app.get('/api/user/profile', wrap(async (req, res) => {
@@ -564,60 +542,221 @@ app.put(['/api/courses/:id', '/courses/:id'], wrap(async (req, res) => {
 app.put(['/api/courses/:id/progress', '/courses/:id/progress'], verifyToken, wrap(async (req, res) => {
   const { id } = req.params;
   const { progress } = req.body;
-  //console.log(`[Progress] Updating overall progress for course: ${id} to ${progress}%`);
+  
   if (progress === undefined || progress < 0 || progress > 100) {
-    return res.status(400).json({ message: 'Invalid overall progress value (0-100)' });
+    return res.status(400).json({ message: 'Invalid progress value (0-100)' });
   }
   
-  const token = req.headers.authorization?.split(' ')[1];
-  if (!token) return res.status(401).json({ message: 'No token provided' });
-  
   try {
-    // Verify token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET, { algorithms: ['HS256'] });
-    //console.log('[Progress] Token verified, userId:', decoded.userId);
-    
-    // Ensure DB connection
     await dbConnect();
-    //console.log('[Progress] DB connected, finding user');
     
-    // Find the user and update the specific course progress
-    const user = await User.findById(decoded.userId);
+    const user = await User.findById(req.user.userId);
     if (!user) {
-      //console.log('[Progress] User not found');
       return res.status(404).json({ message: 'User not found' });
     }
     
-    // Find the enrollment
     const enrollmentIndex = user.enrolledCourses.findIndex(
       enrollment => enrollment.courseId.toString() === id
     );
     
     if (enrollmentIndex === -1) {
-      //console.log('[Progress] User not enrolled in this course');
       return res.status(404).json({ message: 'Not enrolled in this course' });
     }
     
-    // Update progress
     user.enrolledCourses[enrollmentIndex].progress = progress;
     user.enrolledCourses[enrollmentIndex].completed = progress === 100;
     
     await user.save();
-    //console.log('[Progress] Progress updated successfully');
     
     res.status(200).json({ 
+      success: true,
       message: 'Progress updated successfully',
       progress,
       completed: progress === 100
     });
   } catch (error) {
-    if (error.name === 'JsonWebTokenError' || error.name === 'TokenExpiredError') {
-      console.error('[Progress] Token verification failed:', error.message);
-      return res.status(401).json({ message: 'Invalid or expired token' });
-    }
-    console.error('[Progress] Error updating progress:', error.message);
+    console.error('Error updating course progress:', error);
     res.status(500).json({ message: 'Failed to update progress', error: error.message });
   }
+}));
+
+// Lesson progress update endpoint
+app.post(['/api/courses/:courseId/lessons/:lessonId/progress', '/courses/:courseId/lessons/:lessonId/progress'], 
+  verifyToken,
+  wrap(async (req, res) => {
+    const { courseId, lessonId } = req.params;
+    let lastWatchedSecond;
+    
+    try {
+      // Handle both JSON object and raw number in request body
+      if (typeof req.body === 'object' && 'lastWatchedSecond' in req.body) {
+        lastWatchedSecond = parseFloat(req.body.lastWatchedSecond);
+      } else if (typeof req.body === 'object') {
+        const firstValue = Object.values(req.body)[0];
+        lastWatchedSecond = parseFloat(firstValue);
+      } else {
+        lastWatchedSecond = parseFloat(req.body);
+      }
+
+      if (isNaN(lastWatchedSecond) || lastWatchedSecond < 0) {
+        return res.status(400).json({ 
+          message: 'Valid lastWatchedSecond is required' 
+        });
+      }
+
+      await dbConnect();
+
+      const [user, course] = await Promise.all([
+        User.findById(req.user.userId),
+        Course.findById(courseId)
+      ]);
+
+      if (!user) return res.status(404).json({ message: 'User not found' });
+      if (!course) return res.status(404).json({ message: 'Course not found' });
+
+      const enrollment = user.enrolledCourses.find(
+        e => e.courseId.toString() === courseId
+      );
+
+      if (!enrollment) {
+        return res.status(404).json({ message: 'Not enrolled in this course' });
+      }
+
+      const lesson = course.lessons.id(lessonId);
+      if (!lesson) {
+        return res.status(404).json({ message: 'Lesson not found' });
+      }
+
+      // Calculate progress percentage
+      // Ensure consistent progress calculation
+      const lessonDurationSeconds = (lesson.duration || 0) * 60;
+      const progressPercentage = lessonDurationSeconds > 0 
+        ? Math.min(100, Math.round((lastWatchedSecond / lessonDurationSeconds) * 100))
+        : Math.min(100, Math.round((lastWatchedSecond / 60) * 10)); // Fallback calculation
+      
+      console.log(`[Progress] Lesson duration: ${lessonDurationSeconds}s, Watched: ${lastWatchedSecond}s, Progress: ${progressPercentage}%`);
+      const isCompleted = progressPercentage >= 90;
+
+      // Update lesson progress
+      const lessonProgressIndex = enrollment.lessonProgress.findIndex(
+        lp => lp.lessonId.toString() === lessonId
+      );
+
+      // Handle lessonId conversion safely
+      const lessonObjectId = mongoose.Types.ObjectId.isValid(lessonId) 
+        ? (lessonId instanceof mongoose.Types.ObjectId ? lessonId : new mongoose.Types.ObjectId(lessonId))
+        : null;
+        
+      if (!lessonObjectId) {
+        console.error('[Progress] Invalid lessonId format:', lessonId);
+        return res.status(400).json({ message: 'Invalid lesson ID format' });
+      }
+
+      const updatedProgress = {
+        lessonId: lessonObjectId,
+        lastWatchedSecond,
+        progress: progressPercentage,
+        completed: isCompleted,
+        updatedAt: new Date()
+      };
+
+      if (lessonProgressIndex === -1) {
+        enrollment.lessonProgress.push(updatedProgress);
+      } else {
+        enrollment.lessonProgress[lessonProgressIndex] = {
+          ...enrollment.lessonProgress[lessonProgressIndex],
+          ...updatedProgress
+        };
+      }
+
+      // Update completedLessons array
+      const completedLessonIndex = enrollment.completedLessons
+        .findIndex(id => id.toString() === lessonId);
+      
+      if (isCompleted && completedLessonIndex === -1) {
+        enrollment.completedLessons.push(lessonId);
+      } else if (!isCompleted && completedLessonIndex !== -1) {
+        enrollment.completedLessons.splice(completedLessonIndex, 1);
+      }
+
+      // Calculate overall course progress
+      const totalLessons = course.lessons.length;
+      enrollment.progress = totalLessons > 0
+        ? Math.round((enrollment.completedLessons.length / totalLessons) * 100)
+        : 0;
+      
+      enrollment.completed = enrollment.progress === 100;
+
+      try {
+        console.log('[Progress] Saving user progress to database...');
+        await user.save();
+        console.log('[Progress] User progress saved successfully');
+
+        res.status(200).json({
+          success: true,
+          message: 'Progress updated successfully',
+          lessonProgress: progressPercentage,
+          courseProgress: enrollment.progress,
+          completed: isCompleted,
+          lastWatchedSecond,
+          debug: {
+            lessonProgressLength: enrollment.lessonProgress.length,
+            completedLessonsLength: enrollment.completedLessons.length,
+            overallProgress: enrollment.progress
+          }
+        });
+      } catch (saveError) {
+        console.error('[Progress] Error saving user progress:', saveError);
+        throw saveError;
+      }
+
+    } catch (error) {
+      console.error('Error updating lesson progress:', error);
+      res.status(500).json({ 
+        message: 'Failed to update progress',
+        error: error.message 
+      });
+    }
+}));
+
+// Get lesson progress endpoint
+app.get(['/api/courses/:courseId/lessons/:lessonId/progress', '/courses/:courseId/lessons/:lessonId/progress'],
+  verifyToken,
+  wrap(async (req, res) => {
+    const { courseId, lessonId } = req.params;
+    
+    try {
+      await dbConnect();
+
+      const user = await User.findById(req.user.userId);
+      if (!user) return res.status(404).json({ message: 'User not found' });
+
+      const enrollment = user.enrolledCourses.find(
+        e => e.courseId.toString() === courseId
+      );
+
+      if (!enrollment) {
+        return res.status(404).json({ message: 'Not enrolled in this course' });
+      }
+
+      const lessonProgress = enrollment.lessonProgress.find(
+        lp => lp.lessonId.toString() === lessonId
+      );
+
+      res.status(200).json(lessonProgress || {
+        lessonId,
+        lastWatchedSecond: 0,
+        progress: 0,
+        completed: false
+      });
+
+    } catch (error) {
+      console.error('Error fetching lesson progress:', error);
+      res.status(500).json({ 
+        message: 'Failed to fetch progress',
+        error: error.message 
+      });
+    }
 }));
 
 // YouTube metadata fetching endpoint
@@ -779,7 +918,7 @@ export default function handler(req, res) {
 // Always start the server when running the file directly
 const PORT = process.env.PORT || 5174;
 app.listen(PORT, () => {
-  //console.log(`[Server] API server running on http://localhost:${PORT}`);
+  console.log(`[Server] API server running on http://localhost:${PORT}`);
 });
 
 // This is still needed for Vercel serverless deployment

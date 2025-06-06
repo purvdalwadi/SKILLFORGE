@@ -11,11 +11,9 @@ if (!cached) {
 }
 
 async function dbConnect() {
-  
   const MONGODB_URI = process.env.MONGODB_URI;
-  // Log moved here to check value at time of connection attempt
+  console.log("[MongoDB] Attempting connection...");
   
-
   if (!MONGODB_URI) {
     const errorMsg = "[MongoDB] Critical Error: MONGODB_URI is undefined. Ensure .env file is correct and loaded before db operations.";
     console.error(errorMsg);
