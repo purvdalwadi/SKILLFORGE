@@ -197,37 +197,40 @@ const CourseView = () => {
     let isMounted = true; 
 
     const fetchLastWatched = async () => {
-      //console.log(`[CourseView] Attempting to fetch progress for Lesson ID: ${lessonId}`);
-      let lastWatchedSecond = 0;
       const key = `progress_${courseId}_${lessonId}`;
+      
+      // First, immediately check localStorage
+      const localProgress = parseFloat(localStorage.getItem(key)) || 0;
+      if (localProgress > 0) {
+        // Immediately set the progress from localStorage
+        setPlayedSeconds(localProgress);
+      }
 
       try {
-        setIsLoading(true);
-        setPlayerReady(false); 
-
-        // Try backend first
+        // Then fetch from backend in parallel
         const backendProgress = await getLessonProgress(courseId, lessonId);
-        const localProgress = parseFloat(localStorage.getItem(key)) || 0;
-        let lastWatchedSecond = Math.max(backendProgress?.lastWatchedSecond || 0, localProgress);
+        if (!isMounted) return;
 
-        // If near end, reset to 0
+        let lastWatchedSecond = backendProgress?.lastWatchedSecond || 0;
+        
+        // Use the larger value between backend and local
+        lastWatchedSecond = Math.max(lastWatchedSecond, localProgress);
+
+        // Reset if near end
         if (videoDuration && lastWatchedSecond > videoDuration - 5) {
           lastWatchedSecond = 0;
         }
 
-        if (isMounted && backendProgress?.lastWatchedSecond) {
-          lastWatchedSecond = backendProgress.lastWatchedSecond;
-          //console.log(`[CourseView] Fetched from backend: ${lastWatchedSecond}`);
-          // Update localStorage with backend value if newer/different?
-          // localStorage.setItem(key, lastWatchedSecond.toString()); 
-        } else {
-            // If backend fails or returns no progress, immediately try localStorage
-            throw new Error("Backend fetch failed or returned no progress");
+        // Update if we have a valid time
+        if (lastWatchedSecond > 0) {
+          setPlayedSeconds(lastWatchedSecond);
+          // Update localStorage if backend had a newer time
+          if (lastWatchedSecond > localProgress) {
+            localStorage.setItem(key, lastWatchedSecond.toString());
+          }
         }
       } catch (e) {
-        // This block now catches backend errors *and* cases where backend had no data
-        console.warn('[CourseView] Backend fetch failed or no progress found, trying localStorage:', e.message);
-        lastWatchedSecond = parseFloat(localStorage.getItem(key)) || 0;
+        console.warn('[CourseView] Backend fetch failed, using localStorage value');
         if (isMounted) {
             //console.log(`[CourseView] Fetched from localStorage: ${lastWatchedSecond}`);
         }
@@ -272,20 +275,32 @@ const CourseView = () => {
   const handleReady = useCallback(() => {
     //console.log('[CourseView] Player is ready.');
     setPlayerReady(true);
-    const player = playerRef.current;
-    if (player && playedSeconds > 0.1) {
-        //console.log(`[CourseView] handleReady: Attempting to seek to ${playedSeconds}`);
-        setIsSeeking(true); // Set seeking flag before seek
-        try {
-            player.seekTo(playedSeconds, 'seconds');
-        } catch (err) {
-            console.error('[CourseView] Error during initial seekTo:', err);
-            setIsSeeking(false); // Reset flag on error
+
+    // Immediately clear loading state if no seeking needed
+    if (!playerRef.current || playedSeconds <= 0.1) {
+      setIsLoading(false);
+      return;
+    }
+
+    // Handle seeking if we have a saved position
+    try {
+      setIsSeeking(true);
+      // Immediately seek without delay
+      playerRef.current.seekTo(playedSeconds, 'seconds');
+      
+      // Clear states after a minimal delay
+      setTimeout(() => {
+        if (playerRef.current) {
+          setIsLoading(false);
+          setIsSeeking(false);
+          setIsPlaying(true); // Auto-play
         }
-        // Note: onSeek will handle resetting the flag and loading state
-    } else {
-        //console.log('[CourseView] handleReady: No significant time to seek to or player not available.');
-        setIsLoading(false); // If not seeking, loading is finished
+      }, 100); // Reduced delay
+    } catch (err) {
+      console.error('[CourseView] Error during initial seek:', err);
+      setIsSeeking(false);
+      setIsLoading(false);
+      setIsPlaying(false);
     }
   }, [playedSeconds]);
 
@@ -309,42 +324,72 @@ const CourseView = () => {
     // if (currentLessonIndex < course.lessons.length - 1) { ... }
   };
 
-  const handleProgress = (state) => {
-    if (!isSeeking) {
-      setPlayedSeconds(state.playedSeconds);
+  const handleProgress = useCallback((state) => {
+    if (!isSeeking && playerReady) {
+      // Update played seconds only if there's a significant change
+      if (Math.abs(state.playedSeconds - playedSeconds) > 0.5) {
+        setPlayedSeconds(state.playedSeconds);
+      }
+
       // Calculate lesson progress percentage
       if (videoDuration > 0) {
         const progress = (state.playedSeconds / videoDuration) * 100;
-        setLessonProgress(progress);
+        setLessonProgress(Math.min(100, Math.max(0, progress))); // Ensure progress stays between 0-100
         
         // Mark lesson as completed if progress is over 90%
         if (progress >= 90 && course?.lessons?.[currentLessonIndex]?._id) {
-          setCompletedLessons(prev => new Set([...prev, course.lessons[currentLessonIndex]._id]));
-          
-          // Calculate overall course progress
-          if (course?.lessons?.length) {
-            const totalCompleted = completedLessons.size + (completedLessons.has(course.lessons[currentLessonIndex]._id) ? 0 : 1);
-            const newOverallProgress = (totalCompleted / course.lessons.length) * 100;
-            setOverallProgress(newOverallProgress);
-          }
+          const lessonId = course.lessons[currentLessonIndex]._id;
+          setCompletedLessons(prev => {
+            // Only update if not already completed
+            if (!prev.has(lessonId)) {
+              const newCompleted = new Set(prev);
+              newCompleted.add(lessonId);
+              
+              // Calculate overall course progress
+              if (course?.lessons?.length) {
+                const totalCompleted = newCompleted.size;
+                const newOverallProgress = (totalCompleted / course.lessons.length) * 100;
+                setOverallProgress(Math.min(100, Math.max(0, newOverallProgress)));
+              }
+              
+              return newCompleted;
+            }
+            return prev;
+          });
         }
       }
     }
-  };
+  }, [isSeeking, playerReady, playedSeconds, videoDuration, course, currentLessonIndex, completedLessons]);
 
   const handleDuration = (duration) => {
     //console.log('[CourseView] Video duration:', duration);
     setVideoDuration(duration);
   };
 
-  const handleSeek = (_seconds) => {
+  const handleSeek = useCallback((_seconds) => {
     //console.log(`[CourseView] Seek operation completed at ${_seconds}`);
-    setIsSeeking(false); // Reset seeking flag after seek completes
-    setIsLoading(false); // Seeking is done, stop loading indicator
-    // Save progress after seeking to capture the new position
-    // Use a small delay to ensure the state updates if needed
-    setTimeout(() => handleSaveProgress(), 100); 
-  };
+    
+    // Ensure we have the correct time
+    const currentTime = Math.max(0, Math.min(_seconds, videoDuration));
+    setPlayedSeconds(currentTime);
+    
+    // Calculate and update progress
+    if (videoDuration > 0) {
+      const progress = (currentTime / videoDuration) * 100;
+      setLessonProgress(Math.min(100, Math.max(0, progress)));
+    }
+
+    // Reset flags
+    setIsSeeking(false);
+    setIsLoading(false);
+
+    // Save progress after a short delay to ensure state updates
+    setTimeout(() => {
+      if (playerReady && !isSeeking) {
+        handleSaveProgress();
+      }
+    }, 100);
+  }, [videoDuration, playerReady, isSeeking, handleSaveProgress]);
 
   const handleError = (e) => {
     console.error('[CourseView] ReactPlayer Error:', e);
@@ -354,25 +399,55 @@ const CourseView = () => {
   };
 
   // --- Navigation ---
-  const handleNextLesson = () => {
+  const handleNextLesson = useCallback(() => {
     if (currentLessonIndex < course.lessons.length - 1) {
-      handleSaveProgress(); // Save before switching
-      setCurrentLessonIndex(prevIndex => prevIndex + 1);
-      setPlayerReady(false); // Reset player ready state for new video
-      setIsLoading(true); // Show loading for next video
-      setPlayedSeconds(0); // Reset seek time for next lesson (will be fetched)
-    }
-  };
-
-  const handlePreviousLesson = () => {
-    if (currentLessonIndex > 0) {
-      handleSaveProgress(); // Save before switching
-      setCurrentLessonIndex(prevIndex => prevIndex - 1);
-      setPlayerReady(false);
+      const nextIndex = currentLessonIndex + 1;
+      const nextLessonId = course.lessons[nextIndex]?._id;
+      
+      // Save current progress before switching
+      handleSaveProgress();
+      
+      // Set loading states
       setIsLoading(true);
-      setPlayedSeconds(0);
+      setPlayerReady(false);
+      setIsPlaying(false);
+      
+      // Pre-fetch next lesson's progress from localStorage
+      if (nextLessonId) {
+        const key = `progress_${courseId}_${nextLessonId}`;
+        const savedProgress = parseFloat(localStorage.getItem(key)) || 0;
+        setPlayedSeconds(savedProgress);
+      }
+      
+      // Switch to next lesson
+      setCurrentLessonIndex(nextIndex);
     }
-  };
+  }, [currentLessonIndex, course, courseId, handleSaveProgress]);
+
+  const handlePreviousLesson = useCallback(() => {
+    if (currentLessonIndex > 0) {
+      const prevIndex = currentLessonIndex - 1;
+      const prevLessonId = course.lessons[prevIndex]?._id;
+      
+      // Save current progress before switching
+      handleSaveProgress();
+      
+      // Set loading states
+      setIsLoading(true);
+      setPlayerReady(false);
+      setIsPlaying(false);
+      
+      // Pre-fetch previous lesson's progress from localStorage
+      if (prevLessonId) {
+        const key = `progress_${courseId}_${prevLessonId}`;
+        const savedProgress = parseFloat(localStorage.getItem(key)) || 0;
+        setPlayedSeconds(savedProgress);
+      }
+      
+      // Switch to previous lesson
+      setCurrentLessonIndex(prevIndex);
+    }
+  }, [currentLessonIndex, course, courseId, handleSaveProgress]);
 
   // --- Render Logic ---
   if (loading) {
@@ -413,7 +488,7 @@ const CourseView = () => {
                   setCurrentLessonIndex(index);
                   setPlayerReady(false);
                   setIsLoading(true);
-                  setPlayedSeconds(0);
+                  // Don't reset playedSeconds, let it be fetched from storage
                 }}
               >
                 <span className="lesson-index">{index + 1}</span>
