@@ -1,0 +1,118 @@
+/* Reset and base styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    line-height: 1.6;
+    color: #333; /* Changed from #ffffff to #333 */
+}
+
+/* About Section */
+.about {
+    padding: 4rem 1rem;
+    padding-top: 7.5rem;
+    background: linear-gradient(135deg, #0040c1, #0040c1 60%, #00875a);
+    min-height: calc(100vh - 64px);
+    color: #ffffff; /* Move white color here specifically for about section */
+}
+
+body.dark-mode .about {
+    background: #121212;
+    color: #e5e7eb;
+}
+
+.about .section-header {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.about .section-header h2 {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+    color: #ffffff !important;
+    font-weight: 600;
+}
+
+body.dark-mode .about .section-header h2 {
+    color: #e5e7eb !important;
+}
+
+.about .section-header p {
+    font-size: 1.2rem;
+    color: #ffffff !important;
+    opacity: 0.9;
+}
+
+body.dark-mode .about .section-header p {
+    color: #e5e7eb !important;
+}
+
+.about-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem;
+    align-items: center;
+    padding-top: 3.5rem;
+}
+
+.about-image img {
+    width: 100%;
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+body.dark-mode .about-image img{
+    box-shadow: 0 4px 6px rgba(243, 243, 243, 0.1);
+}
+
+/* Modal */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1100;
+    overflow-y: auto;
+}
+
+.about h3 {
+    font-size: 1.57rem;
+}
+
+body.dark-mode .about h3 {
+    color: #e5e7eb;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .hero-content,
+    .about-content {
+        grid-template-columns: 1fr;
+    }
+
+    .nav-links {
+        display: none;
+    }
+
+    .stats {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .dashboard-stats {
+        grid-template-columns: 1fr;
+    }
+
+    .course-details-content {
+        margin: 0;
+        border-radius: 0;
+    }
+}

@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="500" height="400" viewBox="0 0 500 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background circle -->
+  <circle cx="250" cy="200" r="150" fill="#3A5BF3" fill-opacity="0.3"/>
+  
+  <!-- Left Student -->
+  <g transform="translate(130, 120)">
+    <!-- Head with dark hair -->
+    <path d="M0 0C0 0 -20 -10 -20 -30C-20 -50 -10 -60 10 -60C30 -60 40 -50 40 -30C40 -10 20 0 0 0Z" fill="#ffffff"/>
+    <path d="M0 -10C0 -10 -15 -15 -15 -30C-15 -45 -5 -50 10 -50C25 -50 35 -45 35 -30C35 -15 15 -10 0 -10Z" fill="#374151"/>
+    
+    <!-- Face -->
+    <circle cx="-7" cy="-30" r="3" fill="#374151"/>
+    <circle cx="12" cy="-30" r="3" fill="#374151"/>
+    <path d="M-3 -20C-3 -20 0 -18 5 -20" stroke="#374151" stroke-width="2" stroke-linecap="round"/>
+    
+    <!-- Body -->
+    <path d="M0 0L0 60" stroke="#374151" stroke-width="25" stroke-linecap="round"/>
+    
+    <!-- Arms -->
+    <path d="M0 20L-30 40" stroke="#374151" stroke-width="12" stroke-linecap="round"/>
+    <path d="M0 20L30 40" stroke="#374151" stroke-width="12" stroke-linecap="round"/>
+    
+    <!-- Legs -->
+    <path d="M0 60L-15 120" stroke="#ffffff" stroke-width="15" stroke-linecap="round"/>
+    <path d="M0 60L15 120" stroke="#ffffff" stroke-width="15" stroke-linecap="round"/>
+    
+    <!-- Bag/Book -->
+    <rect x="-40" y="35" width="20" height="25" rx="2" fill="#ffffff" stroke="#374151" stroke-width="2"/>
+  </g>
+  
+  <!-- Middle Student (Jumping) -->
+  <g transform="translate(250, 110)">
+    <!-- Head with dark hair -->
+    <path d="M0 0C0 0 -20 -10 -20 -30C-20 -50 -10 -60 10 -60C30 -60 40 -50 40 -30C40 -10 20 0 0 0Z" fill="#ffffff"/>
+    <path d="M0 -10C0 -10 -15 -15 -15 -30C-15 -45 -5 -50 10 -50C25 -50 35 -45 35 -30C35 -15 15 -10 0 -10Z" fill="#4B5563"/>
+    
+    <!-- Face -->
+    <circle cx="-7" cy="-30" r="3" fill="#4B5563"/>
+    <circle cx="12" cy="-30" r="3" fill="#4B5563"/>
+    <path d="M-3 -20C-3 -20 0 -18 5 -20" stroke="#4B5563" stroke-width="2" stroke-linecap="round"/>
+    
+    <!-- Body -->
+    <path d="M0 0L0 60" stroke="#ffffff" stroke-width="25" stroke-linecap="round"/>
+    
+    <!-- Arms raised -->
+    <path d="M0 20L-30 -10" stroke="#ffffff" stroke-width="12" stroke-linecap="round"/>
+    <path d="M0 20L30 -10" stroke="#ffffff" stroke-width="12" stroke-linecap="round"/>
+    
+    <!-- Legs -->
+    <path d="M0 60L-20 110" stroke="#ffffff" stroke-width="15" stroke-linecap="round"/>
+    <path d="M0 60L20 110" stroke="#ffffff" stroke-width="15" stroke-linecap="round"/>
+  </g>
+  
+  <!-- Right Student -->
+  <g transform="translate(370, 120)">
+    <!-- Head with dark hair -->
+    <path d="M0 0C0 0 -20 -10 -20 -30C-20 -50 -10 -60 10 -60C30 -60 40 -50 40 -30C40 -10 20 0 0 0Z" fill="#ffffff"/>
+    <path d="M0 -10C0 -10 -15 -15 -15 -30C-15 -45 -5 -50 10 -50C25 -50 35 -45 35 -30C35 -15 15 -10 0 -10Z" fill="#374151"/>
+    
+    <!-- Face -->
+    <circle cx="-7" cy="-30" r="3" fill="#374151"/>
+    <circle cx="12" cy="-30" r="3" fill="#374151"/>
+    <path d="M-3 -20C-3 -20 0 -18 5 -20" stroke="#374151" stroke-width="2" stroke-linecap="round"/>
+    
+    <!-- Body -->
+    <path d="M0 0L0 60" stroke="#374151" stroke-width="25" stroke-linecap="round"/>
+    
+    <!-- Arms -->
+    <path d="M0 20L-30 0" stroke="#374151" stroke-width="12" stroke-linecap="round"/>
+    <path d="M0 20L30 0" stroke="#374151" stroke-width="12" stroke-linecap="round"/>
+    
+    <!-- Legs -->
+    <path d="M0 60L-15 120" stroke="#ffffff" stroke-width="15" stroke-linecap="round"/>
+    <path d="M0 60L15 120" stroke="#ffffff" stroke-width="15" stroke-linecap="round"/>
+    
+    <!-- Bag -->
+    <path d="M30 0C30 0 45 0 50 10C55 20 45 30 45 30L30 20L30 0Z" fill="#ffffff" stroke="#374151" stroke-width="2"/>
+  </g>
+  
+  <!-- Speech bubble -->
+  <g>
+    <rect x="260" y="60" width="35" height="30" rx="10" fill="#ffffff"/>
+    <circle cx="250" cy="75" r="8" fill="#ffffff"/>
+    <circle cx="240" cy="80" r="5" fill="#ffffff"/>
+  </g>
+</svg> 

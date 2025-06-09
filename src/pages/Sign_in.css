@@ -1,0 +1,8 @@
+/* Signup Page Title Styling */
+.signup-title {
+  color: black; /* Default color for light mode */
+}
+
+body.dark-mode .signup-title {
+  color: white !important; /* Color for dark mode (re-added !important for testing) */
+}

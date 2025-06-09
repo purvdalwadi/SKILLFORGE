@@ -1,0 +1,390 @@
+/* Reset and base styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    line-height: 1.6;
+    color: #333;
+}
+
+/* Dashboard Section */
+.dashboard-container {
+    max-width: 1200px;
+    margin: 2rem auto; /* Default margin */
+    padding: 4rem 1rem 0 1rem; /* Added top padding to avoid navbar overlap */
+}
+
+body.dark-mode .dashboard-container {
+    background: #1f2937; /* Restore dark background */
+    color: #e5e7eb;
+    padding:  4rem 1rem 0 1rem; /* Restore default padding */
+    /* max-width: none; /* Revert: Allow full width in dark mode */
+    /* margin: 0 auto; /* Remove dark-mode specific margin override */
+}
+
+/*body.dark-mode .dashboard-page {
+    /* Background and radius handled by inner .dashboard element */
+    /* overflow: hidden;  Remove clipping */
+/*}*/  
+
+body.dark-mode .dashboard h1 {
+    color: #e5e7eb !important;
+}
+
+body.dark-mode .courses-grid{
+    background-color: #1f2937;
+}
+
+body.dark-mode .progress-container {
+    background-color: #374151;
+}
+
+body.dark-mode .dashboard h1,
+body.dark-mode .section-header h2 {
+    color: #e5e7eb;
+}
+
+
+.dashboard-container h1 {
+    font-size: 2.5rem;
+    margin-bottom: 2rem;
+    color: #333;
+}
+
+.dashboard h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-bottom: 2rem;
+}
+
+.dashboard {
+    background-color: white;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    padding: 2rem 2rem 3rem 2rem;
+    margin-top: 0.2rem;
+}
+
+body.dark-mode .dashboard {
+    background-color: #1f2937; /* Match dashboard-page background */
+    color: #e5e7eb; /* Add text color */
+    /* border-radius: 12px; /* Add border-radius for dark mode */
+    /* overflow: hidden; /* Remove overflow hidden */
+    /* box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); */ /* Removed to test corner issue */
+}
+
+body.dark-mode main.flex-grow {
+    background-color: #1f2937; /* Match dashboard background */
+}
+
+/* Section headers */
+.section-header {
+    background-color: transparent; /* Ensure default is transparent */
+    border-bottom: 1px solid #f0f0f0;
+    padding-bottom: 0.5rem;
+    margin-bottom: 1.5rem;
+}
+
+body.dark-mode .section-header {
+    border-bottom-color: #4b5563; /* Darker border for dark mode */
+}
+
+.section-header h2 {
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid #f0f0f0;
+    padding-bottom: 0.5rem;
+}
+
+.section-header h2 {
+    font-size: 1.5rem;
+    color: #333;
+    font-weight: 600;
+}
+
+/* Stats cards */
+.dashboard-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+}
+
+.stat-card {
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    padding: 1.5rem;
+    text-align: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+body.dark-mode .stat-card {
+    background-color: #374151; /* Slightly lighter card background */
+    color: #e5e7eb;
+    border: 1px solid #4b5563;
+    border-radius: 12px; /* Increased border-radius */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2), 0 1px 3px rgba(0, 0, 0, 0.1); /* Modern shadow */
+}
+
+body.dark-mode .stat-value {
+    color: #93c5fd; /* Brighter blue for value */
+}
+
+body.dark-mode .stat-label {
+    color: #9ca3af; /* Slightly adjusted label color */
+}
+
+body.dark-mode .progress-container,
+body.dark-mode .progress-bg {
+    background-color: #4b5563; /* Darker progress background */
+}
+
+body.dark-mode .progress-bar {
+    background-color: #60a5fa; /* Lighter blue progress bar */
+}
+
+body.dark-mode .progress-text {
+    color: #93c5fd;
+}
+
+body.dark-mode .continue-btn,
+body.dark-mode .browse-courses-btn {
+    background-color: #3b82f6; /* Adjusted button blue */
+    color: #fff;
+}
+
+body.dark-mode .continue-btn:hover,
+body.dark-mode .browse-courses-btn:hover {
+    background-color: #2563eb; /* Darker hover blue */
+}
+
+body.dark-mode .empty-courses {
+    background-color: #374151;
+    color: #9ca3af;
+    border: 1px solid #4b5563;
+}
+
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.08);
+}
+
+.stat-value {
+    display: block;
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #4361ee;
+    margin-bottom: 0.5rem;
+}
+
+.stat-label {
+    color: #6c757d;
+    font-size: 0.875rem;
+}
+
+/* Course grid */
+.courses-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 2rem;
+    padding: 0 1rem;
+}
+
+.course-card {
+    background-color: #fff;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    border: 1px solid #e2e8f0;
+}
+
+.course-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+.course-thumbnail {
+    height: 180px;
+    background-color: #e9ecef;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.course-thumbnail img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.placeholder-thumbnail {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    background: linear-gradient(135deg, #4361ee, #3f37c9);
+}
+
+.placeholder-thumbnail span {
+    font-size: 48px;
+    font-weight: bold;
+    color: white;
+}
+
+.course-details {
+    padding: 1.5rem;
+}
+
+.course-details h3 {
+    margin: 0 0 0.5rem;
+    font-size: 1.25rem;
+    color: #2d3748;
+    font-weight: 600;
+    line-height: 1.4;
+}
+
+.course-category {
+    display: inline-block;
+    font-size: 0.875rem;
+    color: #4361ee;
+    margin-bottom: 1rem;
+    font-weight: 500;
+    background-color: #ebf4ff;
+    padding: 0.25rem 0.75rem;
+    border-radius: 999px;
+}
+
+.course-meta {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+    font-size: 0.875rem;
+    color: #6c757d;
+}
+
+.course-progress {
+    margin-top: 1rem;
+    position: relative;
+    width: 100%;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.course-progress .progress-bar {
+    width: 100%;
+    max-width: 320px;
+    height: 8px;
+    background-color: #e2e8f0;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 0.5rem;
+    position: relative;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.course-progress .progress-fill {
+    height: 100%;
+    background-color: #48bb78;
+    border-radius: 4px;
+    transition: width 0.3s ease;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+.course-progress .progress-text {
+    display: block;
+    font-size: 0.875rem;
+    color: #48bb78;
+    margin-bottom: 1rem;
+}
+
+.view-course-btn {
+    display: block;
+    width: 100%;
+    background-color: #4361ee;
+    color: white;
+    text-align: center;
+    padding: 0.75rem;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    border: none;
+    cursor: pointer;
+}
+
+.view-course-btn:hover {
+    background-color: #3a56d4;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(67, 97, 238, 0.15);
+}
+
+/* Dark mode card styles */
+body.dark-mode .course-card {
+    background-color: #23272f;
+    color: #e5e7eb;
+    border: 1px solid #292c36;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+body.dark-mode .course-category {
+    background-color: rgba(67, 97, 238, 0.18);
+    color: #8bb1f9;
+}
+
+body.dark-mode .course-details h3 {
+    color: #8bb1f9;
+}
+
+body.dark-mode .course-meta {
+    color: #b0b8c1;
+}
+
+body.dark-mode .course-thumbnail {
+    background-color: white;
+}
+
+body.dark-mode .placeholder-thumbnail {
+    background: linear-gradient(135deg, #23272f, #3f37c9);
+}
+
+body.dark-mode .course-progress .progress-bar {
+    background-color: #30343d;
+}
+
+body.dark-mode .course-progress .progress-fill {
+    background-color: #4361ee;
+}
+
+body.dark-mode .course-progress .progress-text {
+    color: #8bb1f9;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .dashboard-stats {
+        grid-template-columns: 1fr;
+    }
+    
+    .courses-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .dashboard {
+        padding: 1.5rem;
+    }
+}

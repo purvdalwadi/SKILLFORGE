@@ -1,0 +1,632 @@
+/* Reset and base styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    line-height: 1.6;
+    color: #333;
+}
+
+html.dark-mode,
+body.dark-mode {
+  background-color: #1f2937; /* Match dashboard dark background */
+  color: #e5e7eb; /* Match dashboard text color */
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Toggle Switch */
+.toggle-switch {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  margin-right: 0.4rem;
+  user-select: none;
+  transition: color 0.3s;
+  height: 1.6rem;
+}
+.toggle-track {
+  width: 48px;
+  height: 24px;
+  background: #e0e0e0;
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  display: flex;
+  align-items: center;
+  position: relative;
+  transition: background 0.3s;
+}
+.toggle-thumb {
+  width: 20px;
+  height: 20px;
+  background: #fff;
+  border-radius: 50%;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  position: absolute;
+  left: 2px;
+  top: 2px;
+  transition: left 0.3s cubic-bezier(.4,2,.6,1), background 0.3s;
+}
+.toggle-switch.toggled .toggle-track {
+  background: #333;
+}
+.toggle-switch.toggled .toggle-thumb {
+  left: 26px;
+  background: #888;
+}
+.toggle-label {
+  font-size: 1rem;
+  font-weight: 500;
+  margin-left: 0.8rem;
+  color: #333;
+  transition: color 0.3s;
+}
+.toggle-switch.toggled .toggle-label {
+  color: #fff;
+}
+
+.nav-actions-row {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+}
+
+/* Navigation */
+.navbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1000;
+    background: rgba(255,255,255,0.75);
+    box-shadow: 0 2px 16px 0 rgba(0,0,0,0.07);
+    padding: 0.05rem 0 0.05rem 0;
+    transition: background 0.4s, box-shadow 0.3s;
+    -webkit-backdrop-filter: blur(14px) saturate(160%);
+    backdrop-filter: blur(14px) saturate(160%);
+}
+
+.dark-navbar {
+    background: rgba(17,24,39,0.78);
+    color: #fff;
+    -webkit-backdrop-filter: blur(14px) saturate(160%);
+    backdrop-filter: blur(14px) saturate(160%);
+}
+
+.dark-navbar .logo span {
+    color: #fff !important;
+}
+
+.dark-navbar .logo-circle {
+    display: none !important;
+}
+
+.dark-navbar .nav-link {
+    color: #f3f3f3 !important;
+}
+
+.dark-navbar .nav-link.active {
+    color: #0040c1 !important;
+}
+
+.nav-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.dark-toggle-btn {
+    background: none;
+    border: none;
+    color: #333;
+    font-size: 1.2rem;
+    margin-left: 1.5rem;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.dark-navbar .dark-toggle-btn {
+    color: #f3f3f3;
+}
+
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.logo-text {
+  font-size: 1.18rem;
+  font-weight: bold;
+  letter-spacing: 0.5px;
+  margin-left: 0.28rem;
+  color: #0040c1;
+  line-height: 1;
+}
+.dark-navbar .logo-text {
+  color: #fff;
+}
+
+.logo-group {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-left: -0.5rem;
+}
+
+.logo-circle, .logo-circle-dark {
+  width: 1.7rem;
+  height: 1.7rem;
+  font-size: 0.92rem;
+}
+
+.logo-circle {
+    background: #0040c1;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.logo-circle-dark {
+    background: white;
+    color: #0040c1;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.nav-links {
+    display: flex;
+    gap: 1.05rem;
+    font-size: 0.99rem;
+    align-items: center;
+}
+
+.nav-link {
+    color: #111 !important;
+    font-weight: 500;
+    text-decoration: none;
+    transition: color 0.2s;
+    display: inline-block;
+    position: relative;
+    padding: 0.2rem 0;
+}
+
+
+
+.nav-link.active {
+    color: #0040c1;
+}
+
+
+
+/* Buttons */
+.primary-btn, .signup-btn {
+    background: #0040c1;
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.375rem;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.secondary-btn {
+    background: transparent;
+    color: white;
+    border: 2px solid white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.375rem;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.login-btn {
+    background: none;
+    border: none;
+    color: #666;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+
+/* Modal */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1100;
+    overflow-y: auto;
+}
+
+.modal-content {
+    background: white;
+    padding: 2rem;
+    border-radius: 0.5rem;
+    max-width: 400px;
+    margin: 4rem auto;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid #ddd;
+    border-radius: 0.375rem;
+}
+
+.close-btn {
+    display: block;
+    width: 100%;
+    padding: 0.5rem;
+    margin-top: 1rem;
+    background: none;
+    border: none;
+    color: #666;
+    cursor: pointer;
+    display: flex;
+    gap: 2rem;
+    align-items: center;
+}
+
+/* Dark mode for Generic Modal */
+body.dark-mode .modal-content {
+  background: #2d3748; /* Dark gray background */
+  color: #e5e7eb; /* Light text */
+  border: 1px solid #4a5568; /* Optional: a subtle border for definition */
+}
+
+body.dark-mode .form-group label {
+  color: #cbd5e0; /* Lighter label text */
+}
+
+body.dark-mode .form-group input {
+  background-color: #1f2937; /* Darker input background, matching body.dark-mode */
+  border: 1px solid #4a5568; /* Slightly lighter border than background */
+  color: #e5e7eb; /* Light text for input */
+}
+
+body.dark-mode .form-group input::placeholder {
+  color: #a0aec0; /* Lighter placeholder text */
+}
+
+body.dark-mode .close-btn {
+  color: #a0aec0; /* Lighter color for close button text/icon */
+}
+
+/* Logout Modal Styles for Header Component */
+.logout-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+.logout-modal-content {
+  background: #fff;
+  padding: 2rem;
+  border-radius: 8px;
+  max-width: 90%;
+  width: 320px;
+  text-align: center;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  transition: all 0.3s ease;
+}
+.logout-modal-content p {
+  margin-bottom: 1.5rem;
+  font-size: 1.1rem;
+  color: #333;
+}
+.logout-modal-ok-btn {
+  padding: 0.6rem 1.2rem;
+  background: #4F46E5;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+.logout-modal-ok-btn:hover {
+  background: #4338CA;
+}
+
+/* Dark mode for Logout Modal */
+body.dark-mode .logout-modal-content {
+  background: #2d3748;
+  color: #e5e7eb;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+}
+
+body.dark-mode .logout-modal-content p {
+  color: #e5e7eb;
+}
+
+body.dark-mode .logout-modal-ok-btn {
+  background: #667eea;
+  color: #fff;
+}
+
+body.dark-mode .logout-modal-ok-btn:hover {
+  background: #5a67d8;
+}
+
+body.dark-mode .spinner {
+  border: 4px solid #4a5568;
+  border-top-color: #667eea;
+}
+
+body.dark-mode .check-icon {
+  color: #667eea;
+}
+
+.spinner {
+  width: 3rem;
+  height: 3rem;
+  border: 4px solid #ddd;
+  border-top-color: #4F46E5;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.check-icon {
+  width: 3rem;
+  height: 3rem;
+  color: #4F46E5;
+  opacity: 0;
+  animation: fadeIn 0.3s forwards;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.5); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* Hamburger Menu */
+.hamburger-menu {
+    display: none; /* Hidden by default, shown in media query */
+    flex-direction: column;
+    justify-content: space-around;
+    width: 2rem;
+    height: 2rem;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    z-index: 10;
+}
+
+.hamburger-menu:focus {
+    outline: none;
+}
+
+.hamburger-bar {
+    width: 2rem;
+    height: 0.25rem;
+    background-color: #333; /* Or white/light color for dark mode */
+    border-radius: 10px;
+    transition: all 0.3s linear;
+    position: relative;
+    transform-origin: 11px;
+}
+
+/* Hamburger to Cross Animation when .open class is added */
+.hamburger-menu.open .hamburger-bar:nth-child(1) {
+    transform: rotate(45deg) translate(5px, 5px);
+}
+
+.hamburger-menu.open .hamburger-bar:nth-child(2) {
+    opacity: 0;
+}
+
+.hamburger-menu.open .hamburger-bar:nth-child(3) {
+    transform: rotate(-45deg) translate(5px, -5px);
+}
+
+.dark-navbar .hamburger-bar {
+    background-color: #f3f3f3;
+}
+
+/* New controls for mobile header bar (toggle + hamburger) */
+.mobile-nav-bar-controls {
+    display: none; /* Hidden by default, shown in media query */
+    align-items: center;
+    gap: 0.8rem; /* Space between toggle and hamburger */
+}
+
+/* Specific styling for the toggle when in the main mobile header bar */
+/* It inherits .toggle-switch styles, this is for overrides or specific context */
+/*.mobile-header-toggle {
+    /* display: flex; is inherited from .toggle-switch */
+    /* No text label is rendered for this instance in JSX */
+    /* Ensure it's vertically aligned with the hamburger 
+}*/
+
+/* Mobile Navigation Links */
+.mobile-nav-links {
+    /* display: none; /* Replaced by opacity, visibility, and max-height */
+    opacity: 0;
+    visibility: hidden;
+    max-height: 0;
+    overflow: hidden; /* Important for max-height transition */
+    transition: opacity 0.3s ease, visibility 0.3s ease, max-height 0.3s ease-in-out;
+    flex-direction: column;
+    align-items: center;
+    position: absolute;
+    top: 100%; /* Position below the navbar */
+    left: 0;
+    width: 100%;
+    background: rgba(255,255,255,0.95); /* Match navbar or slightly more opaque */
+    box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+    padding: 0; /* Padding will be applied when open */
+    z-index: 999; /* Below navbar but above other content */
+    border-top: 1px solid #eee;
+}
+
+.mobile-nav-links.dark-mode {
+    background: rgba(17,24,39,0.95);
+    border-top: 1px solid #333;
+}
+
+.mobile-nav-links.open {
+    /* display: flex; /* Flex properties are on the base class */
+    opacity: 1;
+    visibility: visible;
+    max-height: 500px; /* Adjust as needed, should be larger than content */
+    padding: 1rem 0; /* Restore padding when open */
+    /* Consider adding transitions for a smoother effect if not already present */
+}
+
+.mobile-nav-links .nav-link,
+.mobile-nav-links .login-btn {
+    padding: 0.8rem 1rem;
+    width: 100%;
+    text-align: center;
+    font-size: 1.1rem;
+    color: #333; /* Ensure visibility */
+}
+
+.mobile-nav-links.dark-mode .nav-link,
+.mobile-nav-links.dark-mode .login-btn {
+    color: #f3f3f3;
+}
+
+.mobile-nav-links .nav-link.active {
+    color: #0040c1 !important;
+    font-weight: bold;
+}
+
+.mobile-nav-links .nav-link:hover,
+.mobile-nav-links .login-btn:hover {
+    background-color: rgba(0,0,0,0.05);
+}
+
+.mobile-nav-links.dark-mode .nav-link:hover,
+.mobile-nav-links.dark-mode .login-btn:hover {
+    background-color: rgba(255,255,255,0.1);
+}
+
+.mobile-nav-links .mobile-logout-btn {
+    margin-top: 0.5rem;
+    border-top: 1px solid #eee;
+    padding-top: 0.8rem;
+}
+
+.mobile-nav-links.dark-mode .mobile-logout-btn {
+    border-top: 1px solid #333;
+}
+
+.mobile-actions-wrapper {
+    display: flex;
+    flex-direction: column; /* Stack toggle and login/logout vertically */
+    align-items: center; /* Center items like the logout button */
+    gap: 0.8rem; /* Space between toggle and login/logout */
+    padding-top: 0.8rem;
+    margin-top: 0.5rem;
+    border-top: 1px solid #eee;
+    width: 100%; /* Ensure it takes full width of the mobile menu */
+}
+
+.mobile-nav-links.dark-mode .mobile-actions-wrapper {
+    border-top: 1px solid #333;
+}
+
+.mobile-actions-wrapper .toggle-switch.mobile-toggle {
+    margin-left: 0; /* Remove any inherited margin */
+    padding: 0.5rem 0; /* Add some padding for easier interaction */
+}
+
+.mobile-actions-wrapper .login-btn {
+    width: 100%; /* Make login/logout button full width */
+    text-align: center; /* Align text to the center */
+    padding: 0.8rem 1rem; /* Match padding of other nav links if desired */
+    margin-top: 0; /* Reset margin if any */
+}
+
+.mobile-actions-wrapper .toggle-label {
+    font-size: 0.9rem; /* Slightly smaller label for mobile if needed */
+}
+
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .hero-content,
+    .about-content {
+        grid-template-columns: 1fr;
+    }
+
+    .desktop-nav-links,
+    .desktop-only-actions {
+        display: none;
+    }
+
+    .mobile-nav-bar-controls { /* This container holds mobile toggle and hamburger */
+        display: flex;
+    }
+
+    .hamburger-menu {
+        display: flex;
+    }
+
+    
+
+    /*.nav-actions .nav-actions-row.desktop-only-actions {
+      /* Styles for desktop action row, ensure it's not affecting mobile layout */
+      /* This might already be handled by display:none above, but good to be specific */
+    /*}
+
+    .nav-actions {
+        /* Adjust nav-actions container itself if needed for mobile 
+        /* For example, ensure hamburger is the primary visible item 
+    } */
+
+    .nav-content {
+      position: relative; /* For mobile-nav-links positioning */
+    }
+
+    .stats {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .dashboard-stats {
+        grid-template-columns: 1fr;
+    }
+
+    .course-details-content {
+        margin: 0;
+        border-radius: 0;
+    }
+}
