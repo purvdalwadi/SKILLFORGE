@@ -18,7 +18,6 @@ const UserSchema = new mongoose.Schema({
   password: {
     type: String,
     required: true
-    // In production, store hashed passwords!
   },
   role: {
     type: String,
@@ -31,11 +30,12 @@ const UserSchema = new mongoose.Schema({
       courseId: { type: mongoose.Schema.Types.ObjectId, ref: 'Course' },
       progress: { type: Number, default: 0 }, // Overall course progress
       completed: { type: Boolean, default: false },
-      // {{Add lessonProgress array here}}
+      completedLessons: [{ type: mongoose.Schema.Types.ObjectId }], // Array of completed lesson IDs
       lessonProgress: [{
-          _id: false, // Don't create separate _id for sub-sub-documents unless needed
-          lessonId: { type: mongoose.Schema.Types.ObjectId }, // Reference to the specific lesson _id
-          lastWatchedSecond: { type: Number, default: 0 } // Timestamp where user left off
+        lessonId: { type: mongoose.Schema.Types.ObjectId },
+        lastWatchedSecond: { type: Number, default: 0 },
+        progress: { type: Number, default: 0 }, // Progress percentage for this lesson
+        completed: { type: Boolean, default: false }
       }]
     }
   ],

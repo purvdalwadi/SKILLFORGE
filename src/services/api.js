@@ -56,8 +56,27 @@ export const updateCourseProgress = async (courseId, progress) => {
 
 // Lesson Progress
 export const saveLessonProgress = async (courseId, lessonId, progressData) => {
-  const response = await api.post(`/courses/${courseId}/lessons/${lessonId}/progress`, progressData);
-  return response.data;
+  try {
+    // Log the request
+    console.log(`[API] Saving lesson progress - Course: ${courseId}, Lesson: ${lessonId}, Data:`, progressData);
+    
+    // Ensure progressData is properly formatted
+    const data = typeof progressData === 'number' 
+      ? { lastWatchedSecond: progressData }
+      : progressData;
+    
+    const response = await api.post(`/courses/${courseId}/lessons/${lessonId}/progress`, data);
+    console.log('[API] Progress save response:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('[API] Error saving lesson progress:', error.response || error);
+    // Include more context in the error
+    const enhancedError = new Error(error.response?.data?.message || error.message);
+    enhancedError.originalError = error;
+    enhancedError.courseId = courseId;
+    enhancedError.lessonId = lessonId;
+    throw enhancedError;
+  }
 };
 
 export const getLessonProgress = async (courseId, lessonId) => {

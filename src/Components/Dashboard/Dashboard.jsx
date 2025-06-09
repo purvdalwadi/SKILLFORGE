@@ -55,6 +55,54 @@ const Dashboard = () => {
     }
   }, [enrolledCourses]);
 
+  const renderCourseCard = (course) => (
+    <div className={`course-card${darkMode ? ' dark-course-card' : ''}`} key={course.courseId._id}>
+      <div className="course-thumbnail">
+        {course.courseId.thumbnail ? (
+          <img 
+            src={course.courseId.thumbnail}
+            alt={course.courseId.title} 
+            onError={(e) => {
+              e.target.onerror = null;
+              e.target.src = '/default-course-thumbnail.png';
+            }}
+            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+          />
+        ) : (
+          <div className="placeholder-thumbnail">
+            <span>{course.courseId.title.charAt(0).toUpperCase()}</span>
+          </div>
+        )}
+      </div>
+      <div className="course-details">
+        <span className="course-category">
+          {course.courseId.category || 'General'}
+        </span>
+        <h3>{course.courseId.title}</h3>
+        <div className="course-meta">
+          <span>{course.courseId.lessons?.length || 0} lessons</span>
+          <span>|</span>
+          <span>{course.courseId.level || 'All Levels'}</span>
+        </div>
+        <div className="course-progress">
+          <div className="progress-bar">
+            <div 
+              className="progress-fill" 
+              style={{ width: `${course.progress || 0}%` }}
+            ></div>
+          </div>
+          <span className="progress-text">{course.progress || 0}% Complete</span>
+          <Link 
+            to={`/learn/${course.courseId._id}`} 
+            className="view-course-btn"
+          >
+            {course.progress === 100 ? 'Review Course' : 'Continue Learning'}
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
+
   if (coursesLoading) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center">
@@ -118,49 +166,7 @@ const Dashboard = () => {
           </div>
         ) : (
           <div className="courses-grid">
-            {enrolledCourses.map((course) => (
-              <div className="course-card" key={course.courseId._id}>
-                <div className="course-image">
-                  {course.courseId.thumbnail ? (
-                    <img 
-                      src={course.courseId.thumbnail} 
-                      alt={course.courseId.title}
-                      className="course-thumbnail"
-                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                    />
-                  ) : (
-                    <div className="course-thumbnail-placeholder">
-                      {course.courseId.title.charAt(0)}
-                    </div>
-                  )}
-                </div>
-                <div className="course-content">
-                  <span className="course-category">{course.courseId.category}</span>
-                  <h3>{course.courseId.title}</h3>
-                  <div className="course-meta">
-                    <span>{course.courseId.lessons?.length || 0} lessons</span>
-                    <span>•</span>
-                    <span>{course.courseId.level || 'All Levels'}</span>
-                  </div>
-                  <div className="progress-container">
-                    <div className="progress-bg"></div>
-                    <div 
-                      className="progress-bar" 
-                      style={{ width: `${course.progress || 0}%` }}
-                    ></div>
-                  </div>
-                  <div className="progress-text">
-                    {course.progress || 0}% complete
-                  </div>
-                  <Link 
-                    to={`/learn/${course.courseId._id}`}
-                    className="continue-btn"
-                  >
-                    {course.progress === 0 ? 'Start Learning' : 'Continue Learning'}
-                  </Link>
-                </div>
-              </div>
-            ))}
+            {enrolledCourses.map((course) => renderCourseCard(course))}
           </div>
         )}
       </div>
