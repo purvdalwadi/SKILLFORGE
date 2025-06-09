@@ -1,10 +1,8 @@
 // /api/utils/dbConnect.js
 import mongoose from 'mongoose';
 
-// Use only environment variable for MongoDB connection
-const MONGODB_URI = process.env.MONGODB_URI;
-
-console.log('Using MongoDB URI:', MONGODB_URI ? 'URI is set' : 'URI is undefined');
+// Environment variable for MongoDB connection (MONGODB_URI)
+// will be read directly from process.env inside the dbConnect function.
 
 let cached = global.mongoose;
 
@@ -13,6 +11,15 @@ if (!cached) {
 }
 
 async function dbConnect() {
+  const MONGODB_URI = process.env.MONGODB_URI;
+  console.log("[MongoDB] Attempting connection...");
+  
+  if (!MONGODB_URI) {
+    const errorMsg = "[MongoDB] Critical Error: MONGODB_URI is undefined. Ensure .env file is correct and loaded before db operations.";
+    console.error(errorMsg);
+    throw new Error(errorMsg); // Propagate error to stop connection attempt
+  }
+
   if (cached.conn) {
     return cached.conn;
   }
@@ -23,7 +30,7 @@ async function dbConnect() {
   }
   
   if (!cached.promise) {
-    console.log("[MongoDB] Connecting...");
+    
     
     cached.promise = mongoose
       .connect(MONGODB_URI, { 
@@ -33,13 +40,15 @@ async function dbConnect() {
         useUnifiedTopology: true,
         w: 'majority'
       })
-      .then(mongoose => {
-        console.log("[MongoDB] Connected successfully");
-        return mongoose;
+      .then(mongooseInstance => {
+        //console.log("[MongoDB] Connected");
+        return mongooseInstance;
       })
       .catch(err => {
-        console.error("[MongoDB] Connection error:", err);
-        cached.promise.isRejected = true;
+        console.error("[MongoDB] Connection error during mongoose.connect:", err);
+        if (cached.promise) { // Check if promise exists before modifying
+          cached.promise.isRejected = true;
+        }
         throw err;
       });
   }

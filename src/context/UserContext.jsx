@@ -11,7 +11,7 @@ export function UserProvider({ children }) {
   const [enrolledCourses, setEnrolledCourses] = useState([]);
   const [coursesLoading, setCoursesLoading] = useState(false);
   const [coursesError, setCoursesError] = useState(null);
-
+ 
   // Fetch enrolled courses with debounce
   const fetchEnrolledCourses = useCallback(async () => {
     if (!user) {
@@ -60,7 +60,7 @@ export function UserProvider({ children }) {
           } else {
             setUser(decoded);
             // Immediately fetch enrolled courses when user is set
-            console.log('User authenticated, fetching enrolled courses...');
+            //console.log('User authenticated, fetching enrolled courses...');
             try {
               setCoursesLoading(true);
               const courses = await getEnrolledCourses();
@@ -71,7 +71,7 @@ export function UserProvider({ children }) {
                   .sort((a, b) => (b.progress || 0) - (a.progress || 0));
                 
                 setEnrolledCourses(validCourses);
-                console.log(`Loaded ${validCourses.length} enrolled courses on login`);
+                //console.log(`Loaded ${validCourses.length} enrolled courses on login`);
               }
             } catch (fetchError) {
               console.error('Failed to fetch courses on login:', fetchError);
@@ -97,7 +97,7 @@ export function UserProvider({ children }) {
   useEffect(() => {
     const handleAuthLogin = async (event) => {
       const { user } = event.detail;
-      console.log('Auth login event received, fetching enrolled courses immediately');
+      //console.log('Auth login event received, fetching enrolled courses immediately');
       
       try {
         setCoursesLoading(true);
@@ -109,7 +109,7 @@ export function UserProvider({ children }) {
             .sort((a, b) => (b.progress || 0) - (a.progress || 0));
           
           setEnrolledCourses(validCourses);
-          console.log(`Loaded ${validCourses.length} enrolled courses from auth event`);
+          //console.log(`Loaded ${validCourses.length} enrolled courses from auth event`);
         }
       } catch (error) {
         console.error('Failed to fetch courses after login event:', error);
@@ -154,9 +154,11 @@ export function UserProvider({ children }) {
     updateCourseProgress: handleUpdateCourseProgress
   };
 
+
   return (
     <UserContext.Provider value={value}>
       {children}
     </UserContext.Provider>
   );
+
 }

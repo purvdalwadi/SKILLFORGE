@@ -37,9 +37,9 @@ export default function EditCourse() {
     const fetchCourse = async () => {
       try {
         setLoading(true);
-        console.log('Fetching course with ID:', courseId);
+        //console.log('Fetching course with ID:', courseId);
         const courseData = await getCourseById(courseId);
-        console.log('Course data received:', courseData);
+        //console.log('Course data received:', courseData);
         
         // Check if user exists before comparing IDs
         if (!user) {
@@ -50,20 +50,20 @@ export default function EditCourse() {
         }
         
         // Verify instructor owns this course
-        console.log('Comparing instructor ID:', courseData.instructor._id, 'with user ID:', user._id);
+        //console.log('Comparing instructor ID:', courseData.instructor._id, 'with user ID:', user._id);
         
         // Check if the IDs are string or object IDs and compare properly
         const instructorId = courseData.instructor._id?.toString();
         const userId = user._id?.toString();
         
-        console.log('Comparing as strings:', instructorId, 'vs', userId);
+        //console.log('Comparing as strings:', instructorId, 'vs', userId);
         
         // Also check localStorage for role as backup
         const storedRole = localStorage.getItem('userRole');
         const isInstructor = user.role === 'instructor' || storedRole === 'instructor';
         
         if (!isInstructor) {
-          console.log('User is not an instructor, redirecting');
+          //console.log('User is not an instructor, redirecting');
           navigate('/dashboard');
           return;
         }
@@ -71,7 +71,7 @@ export default function EditCourse() {
         // Skip the instructor check for now to debug the issue
         // We'll just log it instead of redirecting
         if (instructorId !== userId) {
-          console.log('Warning: User may not be the instructor of this course, but continuing for debugging');
+          //console.log('Warning: User may not be the instructor of this course, but continuing for debugging');
           // Don't redirect yet - let's see if this is the issue
           // navigate('/instructor-dashboard');
           // return;
@@ -97,7 +97,7 @@ export default function EditCourse() {
         });
         
         // Log the lessons to verify they have all data
-        console.log('Loaded lessons:', courseData.lessons);
+        //console.log('Loaded lessons:', courseData.lessons);
       } catch (err) {
         console.error('Error fetching course:', err);
         setError('Failed to load course data. Please try again.');
@@ -139,9 +139,9 @@ export default function EditCourse() {
   // Function to fetch YouTube video metadata
   const fetchYouTubeData = async (index, url) => {
     try {
-      console.log('Fetching YouTube metadata for URL:', url);
+      //console.log('Fetching YouTube metadata for URL:', url);
       const metadata = await fetchYouTubeMetadata(url);
-      console.log('Received metadata:', metadata);
+      //console.log('Received metadata:', metadata);
       
       // Update the lesson with the fetched metadata
       const updatedLessons = [...formData.lessons];
@@ -187,7 +187,7 @@ export default function EditCourse() {
     e.preventDefault();
     setIsSubmitting(true);
     setError(null);
-    console.log('Submitting form for course ID:', courseId);
+    //console.log('Submitting form for course ID:', courseId);
 
     try {
       // Validate form data
@@ -210,7 +210,7 @@ export default function EditCourse() {
       }
 
       // Log lessons before submission to verify data
-      console.log('Submitting lessons:', formData.lessons);
+      //console.log('Submitting lessons:', formData.lessons);
 
       // Convert duration to numbers
       const courseData = {
@@ -225,12 +225,12 @@ export default function EditCourse() {
       };
 
       // Update the course
-      console.log('Updating course with ID:', courseId, 'and data:', courseData);
+      //console.log('Updating course with ID:', courseId, 'and data:', courseData);
       await updateCourse(courseId, courseData);
       
       // Show success message
       alert('Course updated successfully!');
-      console.log('Course updated successfully, redirecting to dashboard');
+      //console.log('Course updated successfully, redirecting to dashboard');
       
       // Redirect to instructor dashboard
       navigate('/instructor-dashboard');

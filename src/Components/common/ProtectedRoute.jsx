@@ -1,5 +1,5 @@
-import React from 'react';
-import { Navigate, useLocation } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 
 // A wrapper for routes that should only be accessible to authenticated users
@@ -7,17 +7,37 @@ import { useAuth } from '../../context/AuthContext';
 const ProtectedRoute = ({ children, requiredRole }) => {
   const { user, loading, isInstructor } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
 
-  // Check localStorage directly for role as a backup
-  const storedRole = localStorage.getItem('userRole');
-  const hasInstructorRole = isInstructor() || storedRole === 'instructor';
+  const hasInstructorRole = isInstructor();
 
-  console.log('ProtectedRoute check:', { 
-    requiredRole, 
-    userRole: user?.role,
-    storedRole,
-    hasInstructorRole
-  });
+  // Handle role-based redirects
+  useEffect(() => {
+    if (user && !loading) {
+      // If user is an instructor on the student dashboard, redirect to instructor dashboard
+      if (hasInstructorRole && location.pathname === '/dashboard') {
+        
+        navigate('/instructor-dashboard', { replace: true });
+      }
+      
+      // If user is a student on the instructor dashboard, redirect to student dashboard
+      if (!hasInstructorRole && location.pathname === '/instructor-dashboard') {
+       
+        navigate('/dashboard', { replace: true });
+      }
+    }
+  }, [user, loading, hasInstructorRole, location.pathname, navigate]);
+
+  // Role synchronization effect
+  useEffect(() => {
+    if (user?.role && localStorage.getItem('userRole') !== user.role) {
+      
+      localStorage.setItem('userRole', user.role);
+      window.dispatchEvent(new CustomEvent('role:update', { 
+        detail: { role: user.role }
+      }));
+    }
+  }, [user?.role]);
 
   if (loading) {
     // Show loading state while checking authentication
@@ -36,7 +56,7 @@ const ProtectedRoute = ({ children, requiredRole }) => {
   // If a specific role is required, check if user has that role
   if (requiredRole === 'instructor' && !hasInstructorRole) {
     // Redirect to dashboard if trying to access instructor-only pages
-    console.log('Redirecting from instructor page to dashboard - insufficient permissions');
+    
     return <Navigate to="/dashboard" replace />;
   }
 
@@ -44,4 +64,5 @@ const ProtectedRoute = ({ children, requiredRole }) => {
   return children;
 };
 
-export default ProtectedRoute; 
+
+export default ProtectedRoute;

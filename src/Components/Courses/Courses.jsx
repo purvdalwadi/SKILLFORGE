@@ -26,26 +26,26 @@ const Courses = () => {
     try {
       setLoading(true);
       setError(null);
-      console.log('Fetching all courses...');
+      //console.log('Fetching all courses...');
       const fetchedCourses = await getAllCourses();
       
       if (!Array.isArray(fetchedCourses)) {
         throw new Error('Invalid response format');
       }
       
-      console.log('Courses fetched successfully:', fetchedCourses);
+      //console.log('Courses fetched successfully:', fetchedCourses);
       setCourses(fetchedCourses);
       
       // Extract unique categories from courses
       const uniqueCategories = Array.from(new Set(fetchedCourses.map(c => c.category).filter(Boolean)));
-      console.log('Unique categories found:', uniqueCategories);
+      //console.log('Unique categories found:', uniqueCategories);
       
       // Update categories state with 'All' and the unique categories
       setCategories(['All', ...uniqueCategories]);
       
       // Populate global categories for dropdowns in create/edit pages
       window.allCourseCategories = uniqueCategories;
-      console.log('Global categories set:', window.allCourseCategories);
+      //console.log('Global categories set:', window.allCourseCategories);
 
     } catch (err) {
       console.error('Error fetching courses:', err);

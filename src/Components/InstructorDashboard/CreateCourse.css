@@ -7,19 +7,23 @@
 }
 
 body.dark-mode .create-course-container{
-  background-color: #111827;
+  background-color: #24262a;
+  box-shadow: 0 2px 30px rgb(124 119 119 / 41%);
 }
 
 body.dark-mode .create-course-container h2,
-body.dark-mode .create-course-container h3,
-body.dark-mode .create-course-container label,
+body.dark-mode .create-course-container h4,
+body.dark-mode .create-course-container .lesson-form,
 body.dark-mode .create-course-container input,
 body.dark-mode .create-course-container textarea,
 body.dark-mode .create-course-container select {
   color: #ffffff;
+  background-color: #24262a;
 }
 
-
+body.dark-mode .create-course-container .create-course-form {
+  background-color: #2e3034;
+}
 .create-course-header {
   margin-bottom: 2rem;
   text-align: center;

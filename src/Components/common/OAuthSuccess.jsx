@@ -1,17 +1,25 @@
 import React, { useEffect } from 'react';
-// no useNavigate: using window.location for full reload
 
 const OAuthSuccess = () => {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const token = params.get('token');
-    const redirectPath = params.get('redirectPath') || '/';
+    const redirectPath = params.get('redirectPath') || '/dashboard';
+
     if (token) {
       localStorage.setItem('token', token);
-      // Full reload so AuthContext reads from localStorage
-      window.location.href = redirectPath;
+      localStorage.setItem('oauthRedirect', 'true'); // Trigger slider recalculation
+
+      const cleanPath = redirectPath.startsWith('http')
+        ? new URL(redirectPath).pathname
+        : redirectPath;
+
+      const currentDomain = window.location.origin;
+      const fullRedirectUrl = `${currentDomain}${cleanPath}`;
+
+      window.location.href = fullRedirectUrl;
     } else {
-      window.location.href = '/login';
+      window.location.href = `${window.location.origin}/login`;
     }
   }, []);
 

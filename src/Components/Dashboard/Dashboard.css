@@ -67,7 +67,7 @@ body.dark-mode .section-header h2 {
     border-radius: 12px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     padding: 2rem 2rem 3rem 2rem;
-    margin-top: 4rem;
+    margin-top: 0.2rem;
 }
 
 body.dark-mode .dashboard {
@@ -357,22 +357,68 @@ body.dark-mode .course-content {
     margin-bottom: 1rem;
 }
 
-.continue-btn {
-    display: inline-block;
-    width: 100%;
-    background-color: #4361ee;
-    color: white;
-    text-align: center;
-    padding: 0.75rem 1rem;
-    border-radius: 6px;
-    font-weight: 500;
-    transition: background-color 0.2s ease-in-out;
-    text-decoration: none;
-    margin-top: auto;
+/* Dark mode styles */
+body.dark-mode .progress-container {
+  background-color: #374151;
 }
 
-.continue-btn:hover {
-    background-color: #3651d4;
+body.dark-mode .progress-bg {
+  background-color: #374151;
+}
+
+body.dark-mode .progress-bar {
+  background-color: #4361ee;
+}
+
+body.dark-mode .progress-text {
+  color: #8bb1f9;
+}
+
+/* Stats Section */
+.stats-section {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2.5rem;
+}
+
+.stat-card {
+  background-color: #fff;
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  transition: transform 0.2s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+}
+
+.stat-value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #4361ee;
+  margin-bottom: 0.5rem;
+}
+
+.stat-label {
+  font-size: 0.875rem;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+body.dark-mode .stat-card {
+  background-color: #1f2937;
+}
+
+body.dark-mode .stat-value {
+  color: #8bb1f9;
+}
+
+body.dark-mode .stat-label {
+  color: #9ca3af;
 }
 
 /* Empty state */

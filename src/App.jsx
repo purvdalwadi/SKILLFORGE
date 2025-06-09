@@ -10,7 +10,7 @@ import Login from './Components/login/Login';
 import Signup from './Components/signup/Signup';
 import OAuthSuccess from './Components/common/OAuthSuccess';
 import EnrollmentSuccess from './Components/common/EnrollmentSuccess';
-import Technology from './Components/Courses/Technology';
+
 import CoursePreview from './Components/Courses/CoursePreview';
 import CourseView from './Components/Student/CourseView';
 import InstructorDashboard from './Components/InstructorDashboard/InstructorDashboard';
@@ -81,11 +81,7 @@ const router = createBrowserRouter(
         element={<Signup />} 
         errorElement={<ErrorPage />}
       />
-      <Route 
-        path='courses/technology' 
-        element={<Technology />} 
-        errorElement={<ErrorPage />}
-      />
+     
       {/* Course Preview Route */}
       <Route 
         path='courses/:courseId' 

@@ -58,9 +58,9 @@ export default function CreateCourse() {
   // Function to fetch YouTube video metadata
   const fetchYouTubeData = async (index, url) => {
     try {
-      console.log('Fetching YouTube metadata for URL:', url);
+      //console.log('Fetching YouTube metadata for URL:', url);
       const metadata = await fetchYouTubeMetadata(url);
-      console.log('Received metadata:', metadata);
+      //console.log('Received metadata:', metadata);
       
       // Update the lesson with the fetched metadata
       const updatedLessons = [...formData.lessons];
@@ -123,11 +123,11 @@ export default function CreateCourse() {
         }))
       };
 
-      console.log('Submitting course data:', courseData);
+      //console.log('Submitting course data:', courseData);
       
       // Send the data to the backend
-      const response = await createCourse(courseData);
-      console.log('Course created successfully:', response);
+      await createCourse(courseData);
+      //console.log('Course created successfully:', response);
       
       // Show success message
       alert('Course created successfully!');
@@ -340,4 +340,4 @@ export default function CreateCourse() {
       </form>
     </div>
   );
-} 
+}

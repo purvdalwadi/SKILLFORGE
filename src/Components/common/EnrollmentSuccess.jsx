@@ -8,7 +8,7 @@ const EnrollmentSuccess = () => {
   useEffect(() => {
     // Automatically redirect to dashboard after 2 seconds
     const timer = setTimeout(() => {
-      navigate('/dashboard');
+      navigate('/dashboard', { state: { refreshedTS: Date.now() }, replace: true });
     }, 2000);
 
     return () => clearTimeout(timer);

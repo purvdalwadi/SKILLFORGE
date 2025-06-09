@@ -112,19 +112,6 @@ body.dark-mode {
     color: #0040c1 !important;
 }
 
-.nav-link.active::after {
-    content: '';
-    display: block;
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: -2px;
-    height: 2px;
-    background: #0040c1;
-    border-radius: 2px;
-    transition: left 0.3s cubic-bezier(.4,0,.2,1), right 0.3s cubic-bezier(.4,0,.2,1), background 0.2s, width 0.3s cubic-bezier(.4,0,.2,1);
-}
-
 .nav-content {
     max-width: 1200px;
     margin: 0 auto;
@@ -171,7 +158,7 @@ body.dark-mode {
   display: flex;
   align-items: center;
   gap: 0.4rem;
-  margin-left: -1.5rem;
+  margin-left: -0.5rem;
 }
 
 .logo-circle, .logo-circle-dark {
@@ -187,8 +174,6 @@ body.dark-mode {
     display: flex;
     align-items: center;
     justify-content: center;
-    font-weight: bold;
-    transition: display 0.2s;
 }
 
 .logo-circle-dark {
@@ -198,8 +183,6 @@ body.dark-mode {
     display: flex;
     align-items: center;
     justify-content: center;
-    font-weight: bold;
-    transition: display 0.2s;
 }
 
 .nav-links {
@@ -216,21 +199,16 @@ body.dark-mode {
     transition: color 0.2s;
     display: inline-block;
     position: relative;
+    padding: 0.2rem 0;
 }
+
+
 
 .nav-link.active {
     color: #0040c1;
 }
 
-.nav-link.active::after {
-    content: '';
-    position: absolute;
-    bottom: -4px;
-    left: 0;
-    width: 100%;
-    height: 2px;
-    background: #0040c1;
-}
+
 
 /* Buttons */
 .primary-btn, .signup-btn {
@@ -314,6 +292,31 @@ body.dark-mode {
     align-items: center;
 }
 
+/* Dark mode for Generic Modal */
+body.dark-mode .modal-content {
+  background: #2d3748; /* Dark gray background */
+  color: #e5e7eb; /* Light text */
+  border: 1px solid #4a5568; /* Optional: a subtle border for definition */
+}
+
+body.dark-mode .form-group label {
+  color: #cbd5e0; /* Lighter label text */
+}
+
+body.dark-mode .form-group input {
+  background-color: #1f2937; /* Darker input background, matching body.dark-mode */
+  border: 1px solid #4a5568; /* Slightly lighter border than background */
+  color: #e5e7eb; /* Light text for input */
+}
+
+body.dark-mode .form-group input::placeholder {
+  color: #a0aec0; /* Lighter placeholder text */
+}
+
+body.dark-mode .close-btn {
+  color: #a0aec0; /* Lighter color for close button text/icon */
+}
+
 /* Logout Modal Styles for Header Component */
 .logout-modal-overlay {
   position: fixed;
@@ -357,6 +360,35 @@ body.dark-mode {
   background: #4338CA;
 }
 
+/* Dark mode for Logout Modal */
+body.dark-mode .logout-modal-content {
+  background: #2d3748;
+  color: #e5e7eb;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+}
+
+body.dark-mode .logout-modal-content p {
+  color: #e5e7eb;
+}
+
+body.dark-mode .logout-modal-ok-btn {
+  background: #667eea;
+  color: #fff;
+}
+
+body.dark-mode .logout-modal-ok-btn:hover {
+  background: #5a67d8;
+}
+
+body.dark-mode .spinner {
+  border: 4px solid #4a5568;
+  border-top-color: #667eea;
+}
+
+body.dark-mode .check-icon {
+  color: #667eea;
+}
+
 .spinner {
   width: 3rem;
   height: 3rem;
@@ -383,6 +415,172 @@ body.dark-mode {
   to { opacity: 1; transform: scale(1); }
 }
 
+/* Hamburger Menu */
+.hamburger-menu {
+    display: none; /* Hidden by default, shown in media query */
+    flex-direction: column;
+    justify-content: space-around;
+    width: 2rem;
+    height: 2rem;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    z-index: 10;
+}
+
+.hamburger-menu:focus {
+    outline: none;
+}
+
+.hamburger-bar {
+    width: 2rem;
+    height: 0.25rem;
+    background-color: #333; /* Or white/light color for dark mode */
+    border-radius: 10px;
+    transition: all 0.3s linear;
+    position: relative;
+    transform-origin: 11px;
+}
+
+/* Hamburger to Cross Animation when .open class is added */
+.hamburger-menu.open .hamburger-bar:nth-child(1) {
+    transform: rotate(45deg) translate(5px, 5px);
+}
+
+.hamburger-menu.open .hamburger-bar:nth-child(2) {
+    opacity: 0;
+}
+
+.hamburger-menu.open .hamburger-bar:nth-child(3) {
+    transform: rotate(-45deg) translate(5px, -5px);
+}
+
+.dark-navbar .hamburger-bar {
+    background-color: #f3f3f3;
+}
+
+/* New controls for mobile header bar (toggle + hamburger) */
+.mobile-nav-bar-controls {
+    display: none; /* Hidden by default, shown in media query */
+    align-items: center;
+    gap: 0.8rem; /* Space between toggle and hamburger */
+}
+
+/* Specific styling for the toggle when in the main mobile header bar */
+/* It inherits .toggle-switch styles, this is for overrides or specific context */
+/*.mobile-header-toggle {
+    /* display: flex; is inherited from .toggle-switch */
+    /* No text label is rendered for this instance in JSX */
+    /* Ensure it's vertically aligned with the hamburger 
+}*/
+
+/* Mobile Navigation Links */
+.mobile-nav-links {
+    /* display: none; /* Replaced by opacity, visibility, and max-height */
+    opacity: 0;
+    visibility: hidden;
+    max-height: 0;
+    overflow: hidden; /* Important for max-height transition */
+    transition: opacity 0.3s ease, visibility 0.3s ease, max-height 0.3s ease-in-out;
+    flex-direction: column;
+    align-items: center;
+    position: absolute;
+    top: 100%; /* Position below the navbar */
+    left: 0;
+    width: 100%;
+    background: rgba(255,255,255,0.95); /* Match navbar or slightly more opaque */
+    box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+    padding: 0; /* Padding will be applied when open */
+    z-index: 999; /* Below navbar but above other content */
+    border-top: 1px solid #eee;
+}
+
+.mobile-nav-links.dark-mode {
+    background: rgba(17,24,39,0.95);
+    border-top: 1px solid #333;
+}
+
+.mobile-nav-links.open {
+    /* display: flex; /* Flex properties are on the base class */
+    opacity: 1;
+    visibility: visible;
+    max-height: 500px; /* Adjust as needed, should be larger than content */
+    padding: 1rem 0; /* Restore padding when open */
+    /* Consider adding transitions for a smoother effect if not already present */
+}
+
+.mobile-nav-links .nav-link,
+.mobile-nav-links .login-btn {
+    padding: 0.8rem 1rem;
+    width: 100%;
+    text-align: center;
+    font-size: 1.1rem;
+    color: #333; /* Ensure visibility */
+}
+
+.mobile-nav-links.dark-mode .nav-link,
+.mobile-nav-links.dark-mode .login-btn {
+    color: #f3f3f3;
+}
+
+.mobile-nav-links .nav-link.active {
+    color: #0040c1 !important;
+    font-weight: bold;
+}
+
+.mobile-nav-links .nav-link:hover,
+.mobile-nav-links .login-btn:hover {
+    background-color: rgba(0,0,0,0.05);
+}
+
+.mobile-nav-links.dark-mode .nav-link:hover,
+.mobile-nav-links.dark-mode .login-btn:hover {
+    background-color: rgba(255,255,255,0.1);
+}
+
+.mobile-nav-links .mobile-logout-btn {
+    margin-top: 0.5rem;
+    border-top: 1px solid #eee;
+    padding-top: 0.8rem;
+}
+
+.mobile-nav-links.dark-mode .mobile-logout-btn {
+    border-top: 1px solid #333;
+}
+
+.mobile-actions-wrapper {
+    display: flex;
+    flex-direction: column; /* Stack toggle and login/logout vertically */
+    align-items: center; /* Center items like the logout button */
+    gap: 0.8rem; /* Space between toggle and login/logout */
+    padding-top: 0.8rem;
+    margin-top: 0.5rem;
+    border-top: 1px solid #eee;
+    width: 100%; /* Ensure it takes full width of the mobile menu */
+}
+
+.mobile-nav-links.dark-mode .mobile-actions-wrapper {
+    border-top: 1px solid #333;
+}
+
+.mobile-actions-wrapper .toggle-switch.mobile-toggle {
+    margin-left: 0; /* Remove any inherited margin */
+    padding: 0.5rem 0; /* Add some padding for easier interaction */
+}
+
+.mobile-actions-wrapper .login-btn {
+    width: 100%; /* Make login/logout button full width */
+    text-align: center; /* Align text to the center */
+    padding: 0.8rem 1rem; /* Match padding of other nav links if desired */
+    margin-top: 0; /* Reset margin if any */
+}
+
+.mobile-actions-wrapper .toggle-label {
+    font-size: 0.9rem; /* Slightly smaller label for mobile if needed */
+}
+
+
 /* Responsive Design */
 @media (max-width: 768px) {
     .hero-content,
@@ -390,8 +588,33 @@ body.dark-mode {
         grid-template-columns: 1fr;
     }
 
-    .nav-links {
+    .desktop-nav-links,
+    .desktop-only-actions {
         display: none;
+    }
+
+    .mobile-nav-bar-controls { /* This container holds mobile toggle and hamburger */
+        display: flex;
+    }
+
+    .hamburger-menu {
+        display: flex;
+    }
+
+    
+
+    /*.nav-actions .nav-actions-row.desktop-only-actions {
+      /* Styles for desktop action row, ensure it's not affecting mobile layout */
+      /* This might already be handled by display:none above, but good to be specific */
+    /*}
+
+    .nav-actions {
+        /* Adjust nav-actions container itself if needed for mobile 
+        /* For example, ensure hamburger is the primary visible item 
+    } */
+
+    .nav-content {
+      position: relative; /* For mobile-nav-links positioning */
     }
 
     .stats {

@@ -1,4 +1,3 @@
-
 {
   "name": "skillforge",
   "private": true,
@@ -6,27 +5,27 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "node ./node_modules/vite/bin/vite.js build",
     "preview": "vite preview",
-    "postinstall": "vite build",
-    "build:frontend": "vite build",
-    "build:api": "npm install --prefix api",
-    "vercel-build": "npm run build:frontend && npm run build:api"
+    "build:frontend": "node ./node_modules/vite/bin/vite.js build"
   },
-    "engines": {
-      "node": ">=18.0.0",
-      "npm": ">=9.0.0"
-    }
-  ,
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
   "dependencies": {
+    "@number-flow/react": "^0.5.9",
     "axios": "^1.6.0",
     "bcryptjs": "^3.0.2",
     "cors": "^2.8.5",
     "dotenv": "^16.0.3",
     "express": "^4.18.2",
-    "jsonwebtoken": "^8.5.1",
+    "framer-motion": "^12.16.0",
+    "install": "^0.13.0",
+    "jsonwebtoken": "^9.0.2",
     "jwt-decode": "^4.0.0",
     "mongoose": "^7.0.0",
+    "npm": "^11.4.1",
     "passport": "^0.7.0",
     "passport-google-oauth20": "^2.0.0",
     "react": "^18.2.0",

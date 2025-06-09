@@ -55,8 +55,6 @@ function Footer() {
               <h3 className="footer-title">Quick Links</h3>
               <ul className="quick-links">
                 <li><Link to="/" className="footer-link">Home</Link></li>
-                <li><Link to="/courses" className="footer-link">Courses</Link></li>
-                
                 <li><Link to="/about" className="footer-link">About</Link></li>
               </ul>
             </div>
@@ -76,7 +74,7 @@ function Footer() {
                 <li>
                   <i className="icon" data-feather="map-pin"></i>
                   <span>Daramshih Desai University
-                    Nadiad -387001</span>
+                    Nadiad </span>
                 </li>
               </ul>
             </div>

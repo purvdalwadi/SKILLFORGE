@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import VideoLoader from './VideoLoader';
 import SuccessTick from './SuccessTick';
 
-const EnrollmentModal = ({ stage, onClose }) => {
+const EnrollmentModal = ({ stage }) => {
   useEffect(() => {
     // Prevent scrolling when modal is open
     document.body.style.overflow = 'hidden';

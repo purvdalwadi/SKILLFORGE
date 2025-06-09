@@ -1,4 +1,30 @@
-# SKILLFORGE
+# **SKILLFORGE**
+
+*Empowering Skills, Transforming Futures Together*
+
+[![Last Commit](https://img.shields.io/badge/last%20commit-last%20monday-lightgrey?style=flat&logo=git)](https://shields.io)
+[![JavaScript](https://img.shields.io/badge/javascript-65.9%25-blue?style=flat&logo=javascript)](https://shields.io)
+[![Languages](https://img.shields.io/badge/languages-3-blue)](https://shields.io)
+
+---
+
+*Built with the tools and technologies:*
+
+![Express](https://img.shields.io/badge/Express-black?style=flat&logo=express)
+![JSON](https://img.shields.io/badge/JSON-black?style=flat&logo=json)
+![npm](https://img.shields.io/badge/npm-CB3837?style=flat&logo=npm&logoColor=white)
+![Autoprefixer](https://img.shields.io/badge/Autoprefixer-DD3735?style=flat&logo=autoprefixer&logoColor=white)
+![Mongoose](https://img.shields.io/badge/Mongoose-880000?style=flat&logo=mongoose&logoColor=white)
+![PostCSS](https://img.shields.io/badge/PostCSS-DD3A0A?style=flat&logo=postcss&logoColor=white)
+![.ENV](https://img.shields.io/badge/.ENV-yellow?style=flat)
+
+![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=flat&logo=javascript&logoColor=black)
+![Passport](https://img.shields.io/badge/Passport-34D058?style=flat&logo=passport)
+![React](https://img.shields.io/badge/React-61DAFB?style=flat&logo=react&logoColor=black)
+![Vite](https://img.shields.io/badge/Vite-646CFF?style=flat&logo=vite&logoColor=white)
+![ESLint](https://img.shields.io/badge/ESLint-4B32C3?style=flat&logo=eslint&logoColor=white)
+![Axios](https://img.shields.io/badge/Axios-5A29E4?style=flat&logo=axios&logoColor=white)
+
 
 ## 🚀 Overview
 SKILLFORGE is a modern web application built with React and Vite, designed to provide a fast and efficient development experience.
