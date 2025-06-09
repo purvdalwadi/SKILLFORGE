@@ -337,7 +337,7 @@ const CourseView = () => {
         setLessonProgress(Math.min(100, Math.max(0, progress))); // Ensure progress stays between 0-100
         
         // Mark lesson as completed if progress is over 90%
-        if (progress >= 90 && course?.lessons?.[currentLessonIndex]?._id) {
+        if (progress >= 98 && course?.lessons?.[currentLessonIndex]?._id) {
           const lessonId = course.lessons[currentLessonIndex]._id;
           setCompletedLessons(prev => {
             // Only update if not already completed

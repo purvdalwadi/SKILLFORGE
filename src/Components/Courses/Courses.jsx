@@ -120,7 +120,7 @@ const Courses = () => {
                 to={`/learn/${courseData._id}`} 
                 className="view-course-btn"
               >
-                Continue Learning
+                {course.progress === 100 ? 'Review Course' : 'Continue Learning'}
               </Link>
             </div>
           ) : (

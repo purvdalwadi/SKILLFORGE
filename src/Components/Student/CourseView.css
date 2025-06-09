@@ -655,6 +655,91 @@ body.dark-mode .next-button:hover:not(:disabled) {
   background-color: #1d4ed8;
 }
 
+body.dark-mode .course-view-main-content {
+  background-color: #111827;
+}
+
+body.dark-mode .video-player-section {
+  background-color: #1f2937;
+  border-left-color: #374151;
+}
+
+/* Dark mode styles for text */
+body.dark-mode .course-title h1 {
+  color: #f3f4f6;
+}
+
+body.dark-mode .course-category, 
+body.dark-mode .course-level {
+  background-color: #374151;
+  color: #e5e7eb;
+}
+
+body.dark-mode .progress-text {
+  color: #e5e7eb;
+}
+
+body.dark-mode .course-sidebar h2 {
+  color: #f3f4f6;
+}
+
+body.dark-mode .lesson-title {
+  color: #f3f4f6;
+}
+
+body.dark-mode .lesson-description p {
+  color: #d1d5db;
+}
+
+body.dark-mode .certificate-text,
+body.dark-mode .certificate-date {
+  color: #d1d5db;
+}
+
+body.dark-mode .certificate-name,
+body.dark-mode .certificate-course {
+  color: #f3f4f6;
+}
+
+body.dark-mode .video-loading p {
+  color: #e5e7eb;
+}
+
+body.dark-mode .lesson-nav-title {
+  color: #e5e7eb;
+}
+
+body.dark-mode .no-lesson-content {
+  color: #9ca3af;
+}
+
+body.dark-mode .lesson-description h3 {
+  color: #e5e7eb;
+}
+
+body.dark-mode .lesson-details h2 {
+  color: #f3f4f6;
+}
+
+body.dark-mode .lesson-details p {
+  color: #d1d5db;
+}
+
+/* Dark mode styles for lesson description */
+body.dark-mode .lesson-description {
+  background-color: #1f2937;
+  border-color: #374151;
+}
+
+body.dark-mode .lesson-description h3 {
+  color: #f3f4f6;
+  border-bottom-color: #374151;
+}
+
+body.dark-mode .lesson-description p {
+  color: #e5e7eb;
+}
+
 /* Responsive Styles */
 @media (max-width: 1024px) {
   .course-view-content {
