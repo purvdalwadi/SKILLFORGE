@@ -112,19 +112,6 @@ body.dark-mode {
     color: #0040c1 !important;
 }
 
-.nav-link.active::after {
-    content: '';
-    display: block;
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: -2px;
-    height: 2px;
-    background: #0040c1;
-    border-radius: 2px;
-    transition: left 0.3s cubic-bezier(.4,0,.2,1), right 0.3s cubic-bezier(.4,0,.2,1), background 0.2s, width 0.3s cubic-bezier(.4,0,.2,1);
-}
-
 .nav-content {
     max-width: 1200px;
     margin: 0 auto;
@@ -212,21 +199,16 @@ body.dark-mode {
     transition: color 0.2s;
     display: inline-block;
     position: relative;
+    padding: 0.2rem 0;
 }
+
+
 
 .nav-link.active {
     color: #0040c1;
 }
 
-.nav-link.active::after {
-    content: '';
-    position: absolute;
-    bottom: -4px;
-    left: 0;
-    width: 100%;
-    height: 2px;
-    background: #0040c1;
-}
+
 
 /* Buttons */
 .primary-btn, .signup-btn {
