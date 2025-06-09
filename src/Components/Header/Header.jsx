@@ -43,7 +43,7 @@ function Navbar() {
 
   const updateSlider = () => {
     const activeEl = document.querySelector('.nav-link.active');
-    if (activeEl && sliderRef.current) {
+    if (activeEl) {
       const rect = activeEl.getBoundingClientRect();
       const parentRect = activeEl.parentElement.getBoundingClientRect();
       setSliderStyle({
